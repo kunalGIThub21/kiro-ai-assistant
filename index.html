@@ -1131,7 +1131,8 @@
       document.getElementById('dock-input').value = '';
     }
 
-    // toggleVoice handled in enhanced voice logic
+        // Voice and filter functions defined in feature module below
+
 
     function isImagePrompt(str) {
       const s = str.trim().toLowerCase();
@@ -1797,11 +1798,115 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       updateModesUI();
     }
 
-    // ================= ENHANCED VOICE WITH WAVEFORM & MANUAL SEND =================
+    // ================= ENHANCED VOICE WITH GOOGLE 4-COLOR WAVEFORM & MANUAL SEND =================
     let activeSpeechRecognition = null;
     let isRecordingVoice = false;
 
-    // toggleVoice handled in enhanced voice logic
+    function toggleVoice(targetId) {
+      const input = document.getElementById(targetId);
+      if (!input) return;
+
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Speech) {
+        alert("Voice dictation is supported in Google Chrome, Microsoft Edge, and Safari.");
+        return;
+      }
+
+      const isHero = targetId === 'hero-input';
+      const micBtn = document.getElementById(isHero ? 'hero-mic-btn' : 'dock-mic-btn');
+      const micIcon = document.getElementById(isHero ? 'hero-mic-icon' : 'dock-mic-icon');
+      const waveForm = document.getElementById(isHero ? 'hero-waveform' : 'dock-waveform');
+
+      if (isRecordingVoice && activeSpeechRecognition) {
+        try {
+          activeSpeechRecognition.stop();
+        } catch(e) {}
+        stopVoiceUI(targetId);
+        return;
+      }
+
+      try {
+        const r = new Speech();
+        activeSpeechRecognition = r;
+        r.lang = (typeof isHinglishActive !== 'undefined' && isHinglishActive) ? 'hi-IN' : 'en-US';
+        r.continuous = false;
+        r.interimResults = true;
+
+        r.onstart = () => {
+          isRecordingVoice = true;
+          input.placeholder = "🎙️ Listening... Speak naturally...";
+          if (micIcon) micIcon.classList.add('hidden');
+          if (waveForm) {
+            waveForm.classList.remove('hidden');
+            waveForm.classList.add('flex');
+          }
+          if (micBtn) micBtn.classList.add('bg-white/10', 'ring-1', 'ring-blue-400');
+        };
+
+        r.onresult = (e) => {
+          let transcript = '';
+          for (let i = 0; i < e.results.length; i++) {
+            transcript += e.results[i][0].transcript;
+          }
+          // Populate the input box for manual review and editing (NO auto-submit)
+          input.value = transcript;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+
+        r.onerror = (e) => {
+          console.warn("Speech recognition error:", e);
+          if (e.error === 'not-allowed') {
+            alert("Microphone permission was blocked. Please enable microphone access in your browser site settings.");
+          }
+          stopVoiceUI(targetId);
+        };
+
+        r.onend = () => {
+          stopVoiceUI(targetId);
+          input.focus();
+        };
+
+        function stopVoiceUI(id) {
+          isRecordingVoice = false;
+          activeSpeechRecognition = null;
+          const isH = id === 'hero-input';
+          const mBtn = document.getElementById(isH ? 'hero-mic-btn' : 'dock-mic-btn');
+          const mIcon = document.getElementById(isH ? 'hero-mic-icon' : 'dock-mic-icon');
+          const wForm = document.getElementById(isH ? 'hero-waveform' : 'dock-waveform');
+
+          if (mIcon) mIcon.classList.remove('hidden');
+          if (wForm) {
+            wForm.classList.add('hidden');
+            wForm.classList.remove('flex');
+          }
+          if (mBtn) mBtn.classList.remove('bg-white/10', 'ring-1', 'ring-blue-400');
+          if (typeof updateModesUI === 'function') {
+            updateModesUI();
+          }
+        }
+
+        r.start();
+      } catch (err) {
+        console.error("Failed to start speech recognition:", err);
+        stopVoiceUI(targetId);
+      }
+    }
+
+    function toggleFilterOnly() {
+      const q = prompt("Filter conversations by keyword:");
+      if (q !== null && q.trim()) {
+        const query = q.trim().toLowerCase();
+        const items = document.querySelectorAll('#history-list > div, #history-list li');
+        items.forEach(item => {
+          const match = item.innerText.toLowerCase().includes(query);
+          item.style.display = match ? '' : 'none';
+        });
+      } else if (q !== null) {
+        const items = document.querySelectorAll('#history-list > div, #history-list li');
+        items.forEach(item => item.style.display = '');
+      }
+    }
+
 
     // ================= IMAGE UPLOAD & VISION LOGIC =================
     let currentAttachedImage = null; // { data: base64, mimeType, name, dataUrl }
