@@ -1,0 +1,22 @@
+{
+  "name": "Kiro - Personal AI Assistant",
+  "short_name": "Kiro AI",
+  "description": "24/7 Personal AI Assistant for Workflow, Chat and Image Generation",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#070a13",
+  "theme_color": "#070a13",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://api.iconify.design/lucide:bot.svg?color=%236366f1",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "https://api.iconify.design/lucide:bot.svg?color=%236366f1",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
