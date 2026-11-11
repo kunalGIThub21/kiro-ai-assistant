@@ -48,27 +48,29 @@ jobs:
         run: |
           chmod +x gradlew
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          ./gradlew assembleDebug --no-daemon 2>&1 | tee /tmp/gradle.log || {
-            echo "### ❌ Gradle Build Error Details" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 80 /tmp/gradle.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
+          ./gradlew assembleDebug --no-daemon
 
-      - name: 8. Upload Built APK Artifact
+      - name: 8. Locate and Stage APK
+        run: |
+          APK_FILE=$(find . -name "*.apk" | head -n 1)
+          echo "Found APK at: $APK_FILE"
+          cp "$APK_FILE" ./kiro-ai-assistant.apk
+          ls -la ./kiro-ai-assistant.apk
+
+      - name: 9. Upload Built APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Kiro-AI-Assistant-APK
-          path: kiro-mobile/android/app/build/outputs/apk/debug/*.apk
+          path: ./kiro-ai-assistant.apk
+          if-no-files-found: error
 
-      - name: 9. Publish APK Release
+      - name: 10. Publish APK Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         with:
           tag_name: android-apk-latest
           name: "Kiro AI Android App (.apk)"
           body: "Direct standalone Android APK build of Kiro AI Assistant. Download and install on your phone."
-          files: kiro-mobile/android/app/build/outputs/apk/debug/*.apk
+          files: ./kiro-ai-assistant.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
