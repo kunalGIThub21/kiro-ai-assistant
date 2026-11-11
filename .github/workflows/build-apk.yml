@@ -1,0 +1,72 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'kiro-mobile/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Standalone APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: 📱 Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: 🟢 Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Install kiro-mobile dependencies
+        working-directory: kiro-mobile
+        run: npm install
+
+      - name: ⚙️ Generate Native Android Project
+        working-directory: kiro-mobile
+        run: npx expo prebuild --platform android --clean
+
+      - name: 🔨 Compile Android Debug APK
+        working-directory: kiro-mobile/android
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: 🚀 Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Kiro-AI-Assistant-APK
+          path: kiro-mobile/android/app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+      - name: 🏷️ Publish APK Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: android-apk-latest
+          name: "Kiro AI Android App (.apk)"
+          body: |
+            ### 🤖 Kiro AI Android Standalone APK
+            - **Google Gemini Dark `#131314` Aesthetic**
+            - **Stream Typewriter AI Chat**
+            - **4K Photorealistic Art Generator**
+            - **100% Standalone (Runs on Android phone)**
+            
+            Download the `.apk` file below and tap to install on your Android device!
+          files: kiro-mobile/android/app/build/outputs/apk/debug/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
