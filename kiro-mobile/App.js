@@ -38,7 +38,7 @@ export default function App() {
   const [isThinking, setIsThinking] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [customKey, setCustomKey] = useState('');
-  const [userName, setUserName] = useState('BCA FUNDA');
+  const [userName, setUserName] = useState('User');
   const scrollViewRef = useRef(null);
 
   const effectiveKey = customKey.trim() || process.env.EXPO_PUBLIC_GEMINI_API_KEY || DEFAULT_KEY;
