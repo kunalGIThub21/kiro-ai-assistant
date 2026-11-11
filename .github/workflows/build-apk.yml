@@ -48,7 +48,15 @@ jobs:
         run: |
           chmod +x gradlew
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon > /tmp/gradle.log 2>&1 || {
+            EXIT_CODE=$?
+            echo "### ❌ Gradle Build Error Details" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 /tmp/gradle.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            tail -n 100 /tmp/gradle.log
+            exit $EXIT_CODE
+          }
 
       - name: 8. Find and Stage APK
         run: |
