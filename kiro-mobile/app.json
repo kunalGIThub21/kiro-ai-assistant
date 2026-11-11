@@ -7,12 +7,15 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "backgroundColor": "#070a13"
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#131314"
     },
     "android": {
       "package": "com.kiro.aiassistant",
       "adaptiveIcon": {
-        "backgroundColor": "#070a13"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#131314"
       },
       "permissions": [
         "INTERNET",
