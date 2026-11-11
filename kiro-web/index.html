@@ -97,6 +97,12 @@
         <span>Continue with Google</span>
       </button>
 
+      <!-- Instant Guest Option -->
+      <button onclick="handleGuestSignIn()" class="w-full py-2.5 px-4 rounded-full bg-white/5 hover:bg-white/10 text-[#c4c7c5] hover:text-white font-medium text-xs transition-colors border border-white/10 flex items-center justify-center gap-2">
+        <span>👤</span>
+        <span>Continue as Guest (No sign-in)</span>
+      </button>
+
       <div class="flex items-center gap-3">
         <div class="flex-1 h-px bg-white/10"></div>
         <span class="text-[10px] text-[#8e918f] font-semibold uppercase">Or Email</span>
@@ -189,10 +195,10 @@
         
         <div class="flex items-center gap-2.5 overflow-hidden">
           <div id="user-avatar-badge" class="w-8 h-8 rounded-full bg-[#4285f4] flex items-center justify-center font-bold text-white text-xs shrink-0">
-            <span id="user-avatar-initial">B</span>
+            <span id="user-avatar-initial">U</span>
           </div>
           <div class="overflow-hidden">
-            <h4 id="user-name-label" class="font-semibold text-xs text-white truncate">BCA FUNDA</h4>
+            <h4 id="user-name-label" class="font-semibold text-xs text-white truncate">User</h4>
             <p id="user-tier-label" class="text-[10px] text-[#8e918f]">Kiro Pro</p>
           </div>
         </div>
@@ -529,13 +535,8 @@
           showAuthScreen();
         }
       } else {
-        // Default guest user matching screenshot
-        currentUser = {
-          name: "BCA FUNDA",
-          email: "bcafunda@gmail.com",
-          provider: "google"
-        };
-        unlockAppForUser(currentUser);
+        // No hardcoded default — prompt user to sign in or use guest
+        showAuthScreen();
       }
     });
 
@@ -560,7 +561,7 @@
     }
 
     function handleGoogleSignIn() {
-      const email = prompt("Enter your Google Account email (e.g. user@gmail.com):");
+      const email = prompt("Enter your Google Account email (e.g. yourname@gmail.com):");
       if (!email || !email.includes('@')) return;
 
       const domain = email.split('@')[1].toLowerCase();
@@ -569,11 +570,23 @@
         return;
       }
 
-      const name = email.split('@')[0];
+      const raw = email.split('@')[0].replace(/[._0-9]/g, ' ').trim();
+      const formatted = raw.split(' ').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || "User";
+
       const user = {
-        name: name.charAt(0).toUpperCase() + name.slice(1),
+        name: formatted,
         email: email.toLowerCase(),
         provider: 'google'
+      };
+      saveAndLoginUser(user);
+    }
+
+    function handleGuestSignIn() {
+      const guestNum = Math.floor(100 + Math.random() * 900);
+      const user = {
+        name: `Guest ${guestNum}`,
+        email: `guest_${guestNum}@kiro.local`,
+        provider: 'guest'
       };
       saveAndLoginUser(user);
     }
@@ -671,8 +684,8 @@
       const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
 
       if (chats.length === 0) {
-        // Seed initial chat matching screenshot
-        const defaultChat = { id: 101, title: 'Profitable Niche Selection for USA Y...', pinned: true };
+        // Welcome initial chat
+        const defaultChat = { id: Date.now(), title: 'Getting started with Kiro AI', pinned: false };
         chats.push(defaultChat);
         localStorage.setItem(getUserChatsStorageKey(), JSON.stringify(chats));
       }

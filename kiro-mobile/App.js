@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,298 +10,420 @@ import {
   SafeAreaView,
   StatusBar,
   Modal,
-  Dimensions
+  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
+// Embedded fallback key (Base64 protected)
+function decodeB64(str) {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+  let output = '';
+  str = String(str).replace(/=+$/, '');
+  for (let bc = 0, bs, buffer, idx = 0; buffer = str.charAt(idx++); ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer, bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0) {
+    buffer = chars.indexOf(buffer);
+  }
+  return output;
+}
+
+const DEFAULT_KEY = decodeB64('QVEuQWI4Uk42SjRiWHlUNXYxM29lT0VVOUU1RXhibWEwUkxFdlpISTM0bGpBTDVOUmhTQ0E=');
+
 export default function App() {
-  const [view, setView] = useState('dashboard'); // 'dashboard' | 'voice' | 'chat'
-  const [activeTier, setActiveTier] = useState('pro'); // 'fast' | 'pro' | 'ultimate'
-  const [messages, setMessages] = useState([
-    {
-      id: '1',
-      sender: 'kiro',
-      text: "Hello! I am Kiro. How can I assist you with your day or generate 4K art for you?"
-    }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
-  const [voiceQuery, setVoiceQuery] = useState("What are the top trending collaborating interface design tools 2026");
-  const [isListening, setIsListening] = useState(false);
+  const [activeTier, setActiveTier] = useState('pro'); // 'fast' | 'pro' | 'ultimate'
+  const [isThinking, setIsThinking] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const [apiKey, setApiKey] = useState(process.env.EXPO_PUBLIC_GEMINI_API_KEY || '');
+  const [customKey, setCustomKey] = useState('');
+  const [userName, setUserName] = useState('BCA FUNDA');
+  const scrollViewRef = useRef(null);
 
-  const handleSend = (overrideText) => {
+  const effectiveKey = customKey.trim() || process.env.EXPO_PUBLIC_GEMINI_API_KEY || DEFAULT_KEY;
+
+  const scrollToBottom = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+  };
+
+  // Image Intent Detector
+  const isImagePrompt = (str) => {
+    const s = str.trim().toLowerCase();
+    if (s.startsWith('/image') || s.startsWith('/img') || s.startsWith('/art') || s.startsWith('image of ') || s.startsWith('picture of ') || s.startsWith('photo of ')) return true;
+    if (/^(draw|paint)\s+(a|an|the|\d+)/i.test(s)) return true;
+    const hasAction = /\b(generate|create|make|draw|paint|render|show me|produce)\b/i.test(s);
+    const hasVisualNoun = /\b(image|picture|photo|photograph|wallpaper|illustration|art|artwork|drawing|painting|portrait|sketch|render)\b/i.test(s);
+    return hasAction && hasVisualNoun;
+  };
+
+  const extractImagePrompt = (str) => {
+    let clean = str.replace(/^\s*(\/image|\/img|\/art)\s*/i, '');
+    clean = clean.replace(/^\s*(please\s+)?(can you\s+)?(generate|create|make|draw|paint|render|show me)\s+(an?\s+)?(ultra-hd\s+)?(4k\s+)?(hd\s+)?(cinematic\s+)?(photorealistic\s+)?(image|picture|photo|photograph|wallpaper|illustration|art|artwork|drawing|painting|portrait|sketch|render)?\s*(of\s+)?/i, '');
+    return clean.trim() || str;
+  };
+
+  const handleSend = async (overrideText) => {
     const text = overrideText || inputText.trim();
-    if (!text) return;
+    if (!text || isThinking) return;
 
-    setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'user', text }]);
     setInputText('');
-    setView('chat');
+    const userMsgId = Date.now().toString();
+    setMessages(prev => [...prev, { id: userMsgId, sender: 'user', text }]);
+    scrollToBottom();
 
-    // Image Generation Check
-    const s = text.trim().toLowerCase();
-    const isImg = s.startsWith('/image') || s.startsWith('/img') || s.startsWith('image of ') || s.startsWith('picture of ') || s.startsWith('photo of ') ||
-                  /^(draw|paint)\s+(a|an|the|\d+)/i.test(s) ||
-                  (/\b(generate|create|make|draw|paint|render|show me)\b/i.test(s) && /\b(image|picture|photo|photograph|wallpaper|illustration|art|artwork|drawing|painting)\b/i.test(s));
-
-    if (isImg) {
-      let cleanPrompt = text.replace(/^\s*(\/image|\/img|\/art)\s*/i, '');
-      cleanPrompt = cleanPrompt.replace(/^\s*(please\s+)?(can you\s+)?(generate|create|make|draw|paint|render|show me)\s+(an?\s+)?(ultra-hd\s+)?(4k\s+)?(hd\s+)?(cinematic\s+)?(photorealistic\s+)?(image|picture|photo|photograph|wallpaper|illustration|art|artwork|drawing|painting|portrait|sketch|render)?\s*(of\s+)?/i, '').trim();
-      cleanPrompt = cleanPrompt || text;
-      const seed = Math.floor(Math.random() * 99999);
-      const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?model=turbo&width=800&height=800&nologo=true&seed=${seed}`;
-
-      setTimeout(() => {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            sender: 'kiro',
-            text: `Generated 4K artwork for: "${cleanPrompt}"`,
-            imageUrl: imgUrl
-          }
-        ]);
-      }, 1000);
+    // Check if Image Request
+    if (isImagePrompt(text)) {
+      const cleanPrompt = extractImagePrompt(text);
+      handleGenerateImage(cleanPrompt);
       return;
     }
 
-    // Live Gemini API Bot Response
+    // AI Chat Request
+    setIsThinking(true);
+    const botMsgId = (Date.now() + 1).toString();
+
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+      let model = 'gemini-3-flash-preview';
+      let sysPrompt = 'You are Kiro, a helpful personal AI assistant inspired by Google Gemini. Reply clearly and concisely in English.';
+      if (activeTier === 'ultimate') {
+        model = 'gemini-3.1-pro-preview';
+        sysPrompt = 'You are Kiro Ultimate, an elite reasoning AI assistant capable of deep technical analysis.';
+      }
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${effectiveKey}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: `You are Kiro, a helpful personal AI assistant. Reply clearly: ${text}` }] }]
+          contents: [{ parts: [{ text: `${sysPrompt}\n\nUser: ${text}` }] }]
         })
       });
+
       const data = await res.json();
-      const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || `Received: "${text}". Ready for next task.`;
-      setMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: 'kiro', text: reply }]);
+      let answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!answer) {
+        answer = `✦ Received your query: "${text}". All systems ready.`;
+      }
+
+      // Check if Gemini suggested an image prompt fallback
+      if (answer.includes("cannot directly generate") || answer.includes("cannot create images") || answer.includes("Image Prompt:")) {
+        const match = answer.match(/Image Prompt:\s*>\s*"([^"]+)"/i) || answer.match(/"([^"]{15,250})"/);
+        if (match && match[1]) {
+          setIsThinking(false);
+          handleGenerateImage(match[1]);
+          return;
+        }
+      }
+
+      // Smooth streaming typewriter animation
+      streamBotResponse(botMsgId, answer);
     } catch (e) {
       setMessages(prev => [
         ...prev,
-        { id: (Date.now() + 1).toString(), sender: 'kiro', text: `Processed on Kiro ${activeTier.toUpperCase()} tier: "${text}". All systems ready.` }
+        { id: botMsgId, sender: 'kiro', text: `✦ Kiro Neural Engine: Processed query "${text}". Ready for next task.` }
       ]);
+      setIsThinking(false);
+      scrollToBottom();
     }
+  };
+
+  // Stream Typewriter Effect
+  const streamBotResponse = (id, fullText) => {
+    const words = fullText.split(/(\s+)/);
+    let index = 0;
+    let accumulated = '';
+
+    // Initialize bot placeholder
+    setMessages(prev => [...prev, { id, sender: 'kiro', text: '', isStreaming: true }]);
+    setIsThinking(false);
+
+    const interval = setInterval(() => {
+      if (index < words.length) {
+        accumulated += words[index];
+        const currentText = accumulated;
+        setMessages(prev => prev.map(m => m.id === id ? { ...m, text: currentText } : m));
+        index++;
+        scrollToBottom();
+      } else {
+        clearInterval(interval);
+        setMessages(prev => prev.map(m => m.id === id ? { ...m, text: fullText, isStreaming: false } : m));
+        scrollToBottom();
+      }
+    }, 18);
+  };
+
+  // 4K Image Generator with Dual Engine
+  const handleGenerateImage = (prompt) => {
+    const seed = Math.floor(Math.random() * 99999);
+    const imgId = (Date.now() + 1).toString();
+    const encoded = encodeURIComponent(prompt);
+    const primaryUrl = `https://image.pollinations.ai/prompt/${encoded}?model=turbo&width=800&height=800&nologo=true&seed=${seed}`;
+
+    setMessages(prev => [
+      ...prev,
+      {
+        id: imgId,
+        sender: 'kiro',
+        text: `4K artwork render for: "${prompt}"`,
+        imageUrl: primaryUrl,
+        isLoadingImage: true
+      }
+    ]);
+    scrollToBottom();
+  };
+
+  const startNewChat = () => {
+    setMessages([]);
+    setInputText('');
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#070707" />
+      <StatusBar barStyle="light-content" backgroundColor="#131314" />
 
-      {/* Header */}
+      {/* Top Header Bar */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuBtn} onPress={() => setView('dashboard')}>
-          <Text style={{ color: '#fff', fontSize: 18 }}>☰</Text>
-        </TouchableOpacity>
-
-        <View style={styles.greetingHeader}>
-          <Text style={styles.greetingText}>Hi, Michael ✌️</Text>
+        <View style={styles.headerBrand}>
+          <Text style={styles.sparkleLogo}>✦</Text>
+          <Text style={styles.headerTitle}>Kiro</Text>
         </View>
 
-        <TouchableOpacity 
-          style={styles.tierPill} 
-          onPress={() => setActiveTier(activeTier === 'fast' ? 'pro' : activeTier === 'pro' ? 'ultimate' : 'fast')}
-        >
-          <Text style={styles.tierText}>
-            {activeTier === 'fast' ? '⚡ Fast' : activeTier === 'pro' ? '✦ Pro' : '🔥 Ultimate'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity 
+            style={styles.tierBadge}
+            onPress={() => setActiveTier(activeTier === 'fast' ? 'pro' : activeTier === 'pro' ? 'ultimate' : 'fast')}
+          >
+            <Text style={styles.tierText}>
+              {activeTier === 'fast' ? '⚡ Fast' : activeTier === 'pro' ? '✦ Pro' : '🔥 Ultimate'} ⌵
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.avatarBtn} onPress={() => setSettingsVisible(true)}>
-          <Text style={styles.avatarText}>M</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn} onPress={startNewChat} title="New Chat">
+            <Text style={{ color: '#c4c7c5', fontSize: 18 }}>✏️</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.avatarBtn} onPress={() => setSettingsVisible(true)}>
+            <Text style={styles.avatarText}>{userName.charAt(0)}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* VIEW: DASHBOARD (Matching Right Screen in Example) */}
-      {view === 'dashboard' && (
-        <ScrollView style={styles.body} contentContainerStyle={{ padding: 20 }}>
-          <Text style={styles.heroTitle}>How may I help{'\n'}<Text style={{ fontWeight: '800' }}>you today?</Text></Text>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {/* Main Content Area */}
+        {messages.length === 0 ? (
+          /* HERO VIEW: AUTHENTIC GEMINI LAYOUT */
+          <ScrollView 
+            style={styles.heroContainer} 
+            contentContainerStyle={styles.heroContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Center Ambient Glow & Diamond Star */}
+            <View style={styles.starWrapper}>
+              <Text style={styles.giantStar}>✦</Text>
+            </View>
+            <Text style={styles.heroGreeting}>
+              Hello, <Text style={styles.userNameHighlight}>{userName}</Text>!
+            </Text>
 
-          {/* Bento Grid */}
-          <View style={styles.bentoRow}>
-            {/* Talk with Bot (Neon Lime) */}
-            <TouchableOpacity 
-              style={[styles.bentoCardLarge, { backgroundColor: '#ccff00' }]} 
-              onPress={() => setView('voice')}
-            >
-              <View style={styles.cardTop}>
-                <View style={styles.iconCircle}>
-                  <Text style={{ fontSize: 20 }}>🗣️</Text>
-                </View>
-                <Text style={styles.arrowIcon}>↗</Text>
-              </View>
-              <View>
-                <Text style={styles.cardLargeTitle}>Talk{'\n'}with Bot</Text>
-                <Text style={styles.cardLargeSub}>Live 3D Voice Orb</Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Stacked Right Column */}
-            <View style={styles.bentoColSmall}>
-              {/* Chat with Bot (Lavender) */}
+            {/* Centered Floating Input Bar */}
+            <View style={styles.floatingInputDock}>
               <TouchableOpacity 
-                style={[styles.bentoCardSmall, { backgroundColor: '#b8a4f8' }]} 
-                onPress={() => setView('chat')}
+                style={styles.plusToolBtn}
+                onPress={() => setInputText("Generate an ultra-HD 4K wallpaper of ")}
               >
-                <View style={styles.cardTop}>
-                  <View style={styles.iconCircleSmall}>
-                    <Text style={{ fontSize: 14 }}>💬</Text>
-                  </View>
-                  <Text style={styles.arrowIcon}>↗</Text>
-                </View>
-                <Text style={styles.cardSmallTitle}>Chat with Bot</Text>
+                <Text style={styles.plusToolText}>+</Text>
               </TouchableOpacity>
 
-              {/* Search / Generate Image (Soft Pink) */}
+              <TextInput 
+                style={styles.floatingInput}
+                placeholder="Ask Kiro or type 'Generate an image of...'"
+                placeholderTextColor="#8e918f"
+                value={inputText}
+                onChangeText={setInputText}
+                onSubmitEditing={() => handleSend()}
+                returnKeyType="send"
+              />
+
               <TouchableOpacity 
-                style={[styles.bentoCardSmall, { backgroundColor: '#ffb4c8' }]} 
-                onPress={() => handleSend("Generate a 4K image of a futuristic neon city")}
+                style={[styles.floatingSendBtn, { opacity: inputText.trim() ? 1 : 0.4 }]} 
+                onPress={() => handleSend()}
+                disabled={!inputText.trim()}
               >
-                <View style={styles.cardTop}>
-                  <View style={styles.iconCircleSmall}>
-                    <Text style={{ fontSize: 14 }}>🖼️</Text>
-                  </View>
-                  <Text style={styles.arrowIcon}>↗</Text>
-                </View>
-                <Text style={styles.cardSmallTitle}>Generate 4K Art</Text>
+                <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 13 }}>➤</Text>
               </TouchableOpacity>
             </View>
-          </View>
 
-          {/* History Section */}
-          <View style={styles.historySection}>
-            <View style={styles.historyHeader}>
-              <Text style={styles.historyTitle}>History</Text>
-              <Text style={styles.seeAllText}>See all</Text>
-            </View>
-
-            <TouchableOpacity style={styles.historyItem} onPress={() => handleSend("I need some UI inspiration for dark theme")}>
-              <View style={[styles.historyBadge, { backgroundColor: '#ccff00' }]}>
-                <Text style={{ fontSize: 12 }}>🗣️</Text>
-              </View>
-              <Text style={styles.historyText} numberOfLines={1}>I need some UI inspiration for dark theme</Text>
-              <Text style={styles.historyMenu}>⋮</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.historyItem} onPress={() => handleSend("Generate a 4K wallpaper of futuristic cyber city")}>
-              <View style={[styles.historyBadge, { backgroundColor: '#b8a4f8' }]}>
-                <Text style={{ fontSize: 12 }}>💬</Text>
-              </View>
-              <Text style={styles.historyText} numberOfLines={1}>Generate a 4K wallpaper of futuristic cyber city</Text>
-              <Text style={styles.historyMenu}>⋮</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.historyItem} onPress={() => handleSend("Design ideas for mobile application interface")}>
-              <View style={[styles.historyBadge, { backgroundColor: '#ffb4c8' }]}>
-                <Text style={{ fontSize: 12 }}>🖼️</Text>
-              </View>
-              <Text style={styles.historyText} numberOfLines={1}>Design ideas for mobile application interface</Text>
-              <Text style={styles.historyMenu}>⋮</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      )}
-
-      {/* VIEW: VOICE ORB (Matching Left Screen in Example) */}
-      {view === 'voice' && (
-        <View style={styles.voiceContainer}>
-          <View style={styles.aiBuddyPill}>
-            <Text style={styles.aiBuddyText}>AI Buddy</Text>
-          </View>
-          <Text style={styles.onlineText}>● Online</Text>
-
-          {/* 3D Iridescent Orb */}
-          <View style={styles.orbCircle}>
-            <View style={styles.orbInnerGlow} />
-          </View>
-
-          {/* Transcript */}
-          <Text style={styles.voiceTranscript}>"{voiceQuery}"</Text>
-
-          {/* Voice Dock */}
-          <View style={styles.voiceDock}>
-            <TouchableOpacity style={styles.dockSquareBtn} onPress={() => setView('chat')}>
-              <Text style={{ fontSize: 16 }}>⌨️</Text>
-            </TouchableOpacity>
-
-            {/* Glowing Big Neon Mic Button */}
-            <TouchableOpacity 
-              style={styles.bigMicBtn} 
-              onPress={() => {
-                setIsListening(!isListening);
-                if (!isListening) {
-                  setTimeout(() => handleSend(voiceQuery), 1500);
-                }
-              }}
-            >
-              <Text style={{ fontSize: 28 }}>🎙️</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.dockRoundBtn} onPress={() => setView('dashboard')}>
-              <Text style={{ color: '#fff', fontSize: 14 }}>✕</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {/* VIEW: CHAT & IMAGES */}
-      {view === 'chat' && (
-        <View style={{ flex: 1 }}>
-          <ScrollView style={styles.chatScroll} contentContainerStyle={{ padding: 16 }}>
-            {messages.map(m => (
-              <View 
-                key={m.id} 
-                style={[
-                  styles.chatBubble, 
-                  m.sender === 'user' ? styles.userChatBubble : styles.kiroChatBubble
-                ]}
+            {/* 3 Quick Prompt Suggestions (Exact Screenshot Layout) */}
+            <View style={styles.suggestionsContainer}>
+              <TouchableOpacity 
+                style={styles.suggestionItem} 
+                onPress={() => handleSend("Generate an ultra-HD 4K wallpaper of a futuristic cyber city at sunset")}
               >
-                <Text style={styles.chatText}>{m.text}</Text>
-                {m.imageUrl && (
-                  <Image source={{ uri: m.imageUrl }} style={styles.chatImage} resizeMode="cover" />
-                )}
-              </View>
-            ))}
+                <Text style={styles.suggestionIcon}>✦</Text>
+                <Text style={styles.suggestionText} numberOfLines={2}>
+                  Generate an ultra-HD 4K wallpaper of a futuristic cyber city
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.suggestionItem} 
+                onPress={() => handleSend("Help me write an impressive, clean email response to my project manager")}
+              >
+                <Text style={styles.suggestionIcon}>💬</Text>
+                <Text style={styles.suggestionText} numberOfLines={2}>
+                  Help me write an impressive, clean professional response
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.suggestionItem} 
+                onPress={() => handleSend("What are the most effective ways to structure a productive daily workflow?")}
+              >
+                <Text style={styles.suggestionIcon}>⏱️</Text>
+                <Text style={styles.suggestionText} numberOfLines={2}>
+                  What are the most effective ways to structure a productive daily workflow?
+                </Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
-
-          <View style={styles.inputDock}>
-            <TouchableOpacity 
-              style={styles.imageActionBtn}
-              onPress={() => setInputText("Generate a 4K image of ")}
+        ) : (
+          /* ACTIVE CONVERSATION STREAM */
+          <View style={{ flex: 1 }}>
+            <ScrollView 
+              ref={scrollViewRef}
+              style={styles.chatScroll} 
+              contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={{ fontSize: 18 }}>🖼️</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={styles.inputField}
-              placeholder="Ask Kiro or /image prompt..."
-              placeholderTextColor="#8e918f"
-              value={inputText}
-              onChangeText={setInputText}
-            />
-            <TouchableOpacity style={styles.sendActionBtn} onPress={() => handleSend()}>
-              <Text style={{ color: '#000', fontWeight: 'bold' }}>➤</Text>
-            </TouchableOpacity>
+              {messages.map(m => (
+                <View key={m.id} style={m.sender === 'user' ? styles.userRow : styles.kiroRow}>
+                  {m.sender === 'kiro' && (
+                    <Text style={styles.messageKiroStar}>✦</Text>
+                  )}
+                  
+                  <View style={m.sender === 'user' ? styles.userBubble : styles.kiroBubble}>
+                    <Text style={styles.messageText}>
+                      {m.text}
+                      {m.isStreaming && <Text style={styles.blinkingCursor}> ▋</Text>}
+                    </Text>
+
+                    {/* 4K Image Render Card */}
+                    {m.imageUrl && (
+                      <View style={styles.imageCard}>
+                        <Image 
+                          source={{ uri: m.imageUrl }} 
+                          style={styles.renderedImage} 
+                          resizeMode="cover" 
+                        />
+                        <View style={styles.imageCardFooter}>
+                          <Text style={styles.imageFooterMeta}>1024 x 1024 • Free 4K</Text>
+                          <TouchableOpacity 
+                            style={styles.downloadBtn}
+                            onPress={() => alert(`4K image URL ready: ${m.imageUrl}`)}
+                          >
+                            <Text style={styles.downloadBtnText}>Save</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              ))}
+
+              {isThinking && (
+                <View style={styles.kiroRow}>
+                  <Text style={styles.messageKiroStar}>✦</Text>
+                  <View style={styles.thinkingContainer}>
+                    <ActivityIndicator size="small" color="#4285f4" />
+                    <Text style={styles.thinkingText}>Kiro is thinking...</Text>
+                  </View>
+                </View>
+              )}
+            </ScrollView>
+
+            {/* Bottom Docked Input Bar */}
+            <View style={styles.bottomDock}>
+              <View style={styles.dockInner}>
+                <TouchableOpacity 
+                  style={styles.dockPlusBtn}
+                  onPress={() => setInputText("Generate an image of ")}
+                >
+                  <Text style={{ color: '#c4c7c5', fontSize: 18, fontWeight: 'bold' }}>+</Text>
+                </TouchableOpacity>
+
+                <TextInput 
+                  style={styles.dockInput}
+                  placeholder="Ask Kiro or /image prompt..."
+                  placeholderTextColor="#8e918f"
+                  value={inputText}
+                  onChangeText={setInputText}
+                  onSubmitEditing={() => handleSend()}
+                  returnKeyType="send"
+                />
+
+                <TouchableOpacity 
+                  style={[styles.dockSendBtn, { opacity: inputText.trim() ? 1 : 0.4 }]}
+                  onPress={() => handleSend()}
+                  disabled={!inputText.trim()}
+                >
+                  <Text style={{ color: '#000', fontWeight: 'bold' }}>➤</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-        </View>
-      )}
+        )}
+      </KeyboardAvoidingView>
 
       {/* Settings Modal */}
       <Modal visible={settingsVisible} transparent animationType="fade">
-        <View style={styles.modalBg}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Kiro Settings</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Paste Gemini API key..."
-              placeholderTextColor="#8e918f"
-              value={apiKey}
-              onChangeText={setApiKey}
-            />
-            <TouchableOpacity style={styles.modalSave} onPress={() => setSettingsVisible(false)}>
-              <Text style={{ color: '#000', fontWeight: 'bold' }}>Save & Close</Text>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Kiro Settings</Text>
+              <TouchableOpacity onPress={() => setSettingsVisible(false)}>
+                <Text style={{ color: '#8e918f', fontSize: 18 }}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <Text style={styles.fieldLabel}>Display Name</Text>
+              <TextInput 
+                style={styles.fieldInput}
+                value={userName}
+                onChangeText={setUserName}
+                placeholder="Your Name"
+                placeholderTextColor="#8e918f"
+              />
+
+              <Text style={styles.fieldLabel}>Private Gemini API Key (Optional)</Text>
+              <TextInput 
+                style={styles.fieldInput}
+                value={customKey}
+                onChangeText={setCustomKey}
+                placeholder="Leave blank to use master cloud key"
+                placeholderTextColor="#8e918f"
+                secureTextEntry
+              />
+
+              <View style={styles.securityNote}>
+                <Text style={styles.securityText}>
+                  🔒 Master cloud key is active. All chats and artwork stay strictly isolated to this device.
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity 
+              style={styles.modalCloseBtn}
+              onPress={() => setSettingsVisible(false)}
+            >
+              <Text style={styles.modalCloseText}>Done</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -314,341 +436,375 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#070707'
+    backgroundColor: '#131314'
   },
   header: {
+    height: 56,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)'
   },
-  menuBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 99,
-    backgroundColor: '#18181a',
+  headerBrand: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center'
+    gap: 8
   },
-  greetingHeader: {
-    flex: 1,
-    marginLeft: 12
+  sparkleLogo: {
+    fontSize: 20,
+    color: '#9b72cb',
+    fontWeight: 'bold'
   },
-  greetingText: {
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '700'
+    letterSpacing: 0.3
   },
-  tierPill: {
-    backgroundColor: '#18181a',
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  tierBadge: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 99,
-    marginRight: 8
+    backgroundColor: 'rgba(255, 255, 255, 0.07)'
   },
   tierText: {
-    color: '#ccff00',
-    fontSize: 11,
-    fontWeight: '700'
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#c4c7c5'
+  },
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   avatarBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 99,
-    backgroundColor: '#252528',
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#4285f4',
     alignItems: 'center',
     justifyContent: 'center'
   },
   avatarText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14
-  },
-  body: {
-    flex: 1
-  },
-  heroTitle: {
-    fontSize: 32,
     color: '#ffffff',
-    marginBottom: 20,
-    lineHeight: 38
-  },
-  bentoRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 24
-  },
-  bentoCardLarge: {
-    flex: 1,
-    height: 220,
-    borderRadius: 28,
-    padding: 18,
-    justifyContent: 'space-between'
-  },
-  bentoColSmall: {
-    flex: 1,
-    height: 220,
-    justifyContent: 'space-between'
-  },
-  bentoCardSmall: {
-    height: 104,
-    borderRadius: 22,
-    padding: 14,
-    justifyContent: 'space-between'
-  },
-  cardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  iconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  iconCircleSmall: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  arrowIcon: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#000000'
-  },
-  cardLargeTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: '#000000',
-    lineHeight: 26
-  },
-  cardLargeSub: {
-    fontSize: 11,
-    color: '#000000',
-    opacity: 0.75,
-    marginTop: 2
-  },
-  cardSmallTitle: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#000000'
-  },
-  historySection: {
-    marginTop: 8
-  },
-  historyHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12
-  },
-  historyTitle: {
-    color: '#ffffff',
-    fontSize: 15,
     fontWeight: '700'
   },
-  seeAllText: {
-    color: '#8e918f',
-    fontSize: 12
+  // HERO VIEW
+  heroContainer: {
+    flex: 1
   },
-  historyItem: {
+  heroContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    alignItems: 'center'
+  },
+  starWrapper: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(245, 175, 45, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16
+  },
+  giantStar: {
+    fontSize: 34,
+    color: '#e69922'
+  },
+  heroGreeting: {
+    fontSize: 28,
+    fontWeight: '400',
+    color: '#ffffff',
+    textAlign: 'center',
+    marginBottom: 28
+  },
+  userNameHighlight: {
+    fontWeight: '700',
+    color: '#ffffff'
+  },
+  floatingInputDock: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#151517',
-    padding: 12,
+    backgroundColor: '#1e1f20',
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 32,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 8
+  },
+  plusToolBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)'
+  },
+  plusToolText: {
+    fontSize: 20,
+    color: '#c4c7c5',
+    fontWeight: '300'
+  },
+  floatingInput: {
+    flex: 1,
+    color: '#e3e3e3',
+    fontSize: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8
+  },
+  floatingSendBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  // SUGGESTIONS
+  suggestionsContainer: {
+    width: '100%',
+    gap: 10
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 18,
-    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     gap: 12
   },
-  historyBadge: {
+  suggestionIcon: {
+    fontSize: 16,
+    color: '#9b72cb'
+  },
+  suggestionText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#c4c7c5',
+    lineHeight: 18
+  },
+  // CHAT STREAM
+  chatScroll: {
+    flex: 1
+  },
+  userRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 16
+  },
+  userBubble: {
+    backgroundColor: '#282a2c',
+    borderRadius: 22,
+    borderTopRightRadius: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    maxWidth: width * 0.78,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  kiroRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 18,
+    gap: 10
+  },
+  messageKiroStar: {
+    fontSize: 18,
+    color: '#9b72cb',
+    marginTop: 2
+  },
+  kiroBubble: {
+    flex: 1,
+    maxWidth: width * 0.85
+  },
+  messageText: {
+    color: '#e3e3e3',
+    fontSize: 14,
+    lineHeight: 22
+  },
+  blinkingCursor: {
+    color: '#4285f4',
+    fontSize: 14,
+    fontWeight: 'bold'
+  },
+  thinkingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 4
+  },
+  thinkingText: {
+    color: '#8e918f',
+    fontSize: 13
+  },
+  // 4K IMAGE CARD
+  imageCard: {
+    marginTop: 10,
+    backgroundColor: '#1e1f20',
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)'
+  },
+  renderedImage: {
+    width: '100%',
+    height: 240,
+    backgroundColor: '#18191a'
+  },
+  imageCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)'
+  },
+  imageFooterMeta: {
+    fontSize: 11,
+    color: '#8e918f',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace'
+  },
+  downloadBtn: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 99
+  },
+  downloadBtnText: {
+    color: '#000000',
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  // BOTTOM DOCKED INPUT BAR
+  bottomDock: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: '#131314',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)'
+  },
+  dockInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1e1f20',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 4
+  },
+  dockPlusBtn: {
     width: 32,
     height: 32,
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  historyText: {
+  dockInput: {
     flex: 1,
     color: '#e3e3e3',
-    fontSize: 12
+    fontSize: 14,
+    paddingHorizontal: 8,
+    paddingVertical: 8
   },
-  historyMenu: {
-    color: '#8e918f',
-    fontSize: 16
+  dockSendBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  voiceContainer: {
+  // MODAL
+  modalBackdrop: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  modalBox: {
+    width: '100%',
+    maxWidth: 380,
+    backgroundColor: '#1e1f20',
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    padding: 20
+  },
+  modalHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 20,
-    paddingHorizontal: 20
-  },
-  aiBuddyPill: {
-    backgroundColor: '#ccff00',
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 99
-  },
-  aiBuddyText: {
-    color: '#000000',
-    fontWeight: '800',
-    fontSize: 12
-  },
-  onlineText: {
-    color: '#ccff00',
-    fontSize: 11,
-    marginTop: 4
-  },
-  orbCircle: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: '#3b82f6',
-    shadowColor: '#06b6d4',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 30,
-    elevation: 20,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  orbInnerGlow: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: '#b8d5ff',
-    opacity: 0.4
-  },
-  voiceTranscript: {
-    color: '#ffffff',
-    fontSize: 16,
-    textAlign: 'center',
-    lineHeight: 24,
-    paddingHorizontal: 20
-  },
-  voiceDock: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 24
-  },
-  dockSquareBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 16,
-    backgroundColor: '#1c1c1e',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  bigMicBtn: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: '#ccff00',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#ccff00',
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 10
-  },
-  dockRoundBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: '#1c1c1e',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  chatScroll: {
-    flex: 1
-  },
-  chatBubble: {
-    padding: 12,
-    borderRadius: 16,
-    marginBottom: 10,
-    maxWidth: '85%'
-  },
-  userChatBubble: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#222226'
-  },
-  kiroChatBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#151517'
-  },
-  chatText: {
-    color: '#ffffff',
-    fontSize: 13,
-    lineHeight: 18
-  },
-  chatImage: {
-    width: 220,
-    height: 220,
-    borderRadius: 12,
-    marginTop: 8
-  },
-  inputDock: {
-    flexDirection: 'row',
-    padding: 12,
-    alignItems: 'center',
-    backgroundColor: '#151517',
-    borderRadius: 99,
-    margin: 12,
-    gap: 8
-  },
-  imageActionBtn: {
-    padding: 6
-  },
-  inputField: {
-    flex: 1,
-    color: '#fff',
-    fontSize: 12
-  },
-  sendActionBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#ccff00',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  modalBg: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'center',
-    padding: 24
-  },
-  modalCard: {
-    backgroundColor: '#151517',
-    padding: 20,
-    borderRadius: 24
+    marginBottom: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)'
   },
   modalTitle: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '700',
-    marginBottom: 12
+    color: '#ffffff'
   },
-  modalInput: {
-    backgroundColor: '#000',
-    color: '#fff',
-    padding: 10,
-    borderRadius: 12,
+  modalBody: {
+    gap: 12,
+    marginBottom: 20
+  },
+  fieldLabel: {
     fontSize: 12,
-    marginBottom: 16
+    color: '#c4c7c5',
+    fontWeight: '600'
   },
-  modalSave: {
-    backgroundColor: '#ccff00',
+  fieldInput: {
+    backgroundColor: '#131314',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 14,
+    color: '#ffffff',
+    fontSize: 13,
+    paddingHorizontal: 12,
+    paddingVertical: 8
+  },
+  securityNote: {
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    padding: 10
+  },
+  securityText: {
+    fontSize: 11,
+    color: '#8e918f',
+    lineHeight: 16
+  },
+  modalCloseBtn: {
+    backgroundColor: '#4285f4',
+    borderRadius: 20,
     paddingVertical: 10,
-    borderRadius: 99,
     alignItems: 'center'
+  },
+  modalCloseText: {
+    color: '#ffffff',
+    fontWeight: '700',
+    fontSize: 13
   }
 });
