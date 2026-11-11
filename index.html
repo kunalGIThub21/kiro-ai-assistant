@@ -74,9 +74,79 @@
       background: #2a2b2e;
       border-radius: 99px;
     }
+    /* Ultra Glassmorphism */
+    .glass-dock {
+      background: rgba(28, 29, 32, 0.72) !important;
+      backdrop-filter: blur(28px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.65), 0 0 30px rgba(66, 133, 244, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+    .glass-dock:focus-within {
+      border-color: rgba(66, 133, 244, 0.65) !important;
+      box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 35px rgba(66, 133, 244, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.22) !important;
+    }
+
+    .glass-card {
+      background: rgba(30, 31, 34, 0.55) !important;
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    .glass-sidebar {
+      background: rgba(19, 19, 20, 0.82) !important;
+      backdrop-filter: blur(30px) !important;
+      -webkit-backdrop-filter: blur(30px) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    /* Cinematic Splash Keyframes */
+    @keyframes kiroEntrance {
+      0% { opacity: 0; filter: blur(22px); transform: scale(0.9); }
+      50% { opacity: 1; filter: blur(0px); transform: scale(1); }
+      100% { opacity: 1; filter: blur(0px); transform: scale(1); }
+    }
+    @keyframes lineExpand {
+      0% { width: 0px; opacity: 0; }
+      40% { width: 0px; opacity: 0; }
+      70% { width: 150px; opacity: 1; }
+      100% { width: 170px; opacity: 1; }
+    }
+    @keyframes creditFade {
+      0% { opacity: 0; transform: translateY(8px); }
+      60% { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body class="h-screen w-screen flex bg-[#131314] text-[#e3e3e3] overflow-hidden select-none relative">
+  <!-- ================= CINEMATIC SPLASH HERO INTRO ================= -->
+  <div id="kiro-splash-screen" class="fixed inset-0 z-[100] bg-[#0c0d0e]/95 backdrop-blur-3xl flex flex-col items-center justify-center pointer-events-none transition-all duration-1000 ease-out">
+    <div id="kiro-splash-content" class="relative flex flex-col items-center justify-center p-8 text-center" style="animation: kiroEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+      <!-- Glowing Radial Ambient Ring -->
+      <div class="absolute w-80 h-80 rounded-full bg-gradient-to-tr from-blue-600/35 via-purple-600/25 to-amber-500/25 blur-3xl -z-10 animate-pulse"></div>
+      
+      <!-- Diamond Star Logo -->
+      <div class="gemini-diamond-star mb-4 scale-150"></div>
+
+      <!-- Kiro Gradient Brand Title -->
+      <h1 class="text-6xl sm:text-8xl font-black tracking-tight text-white drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
+        Kiro
+      </h1>
+
+      <!-- Glowing Animated Underline -->
+      <div class="h-[3px] bg-gradient-to-r from-transparent via-[#4285f4] to-transparent my-4 shadow-[0_0_16px_#4285f4]" style="animation: lineExpand 1.6s ease-out forwards;"></div>
+
+      <!-- Developed by Kunal Tandon Credit -->
+      <p class="text-xs sm:text-sm font-semibold tracking-widest uppercase bg-gradient-to-r from-amber-200 via-white to-amber-300 bg-clip-text text-transparent drop-shadow-md" style="animation: creditFade 1.8s ease-out forwards;">
+        ✦ Developed by Kunal Tandon ✦
+      </p>
+    </div>
+  </div>
+
 
   <!-- Ambient Glow -->
   <div class="gemini-ambient-glow"></div>
@@ -435,7 +505,7 @@
       </div>
 
       <p class="text-[11px] text-[#8e918f] text-center mt-2 font-normal">
-        Kiro can make mistakes. All chats are private to your account.
+        Kiro can make mistakes. • Developed with ✦ by <span class="text-white font-semibold">Kunal Tandon</span>
       </p>
     </footer>
 
@@ -1049,6 +1119,14 @@
       appendUserMessage(text);
 
       // Check if image request
+      if (isAskingAboutCreator(text)) {
+        setTimeout(() => {
+          removeTypingIndicator();
+          appendBotResponse(KUNAL_TANDON_PRAISE);
+        }, 500);
+        return;
+      }
+
       if (isImagePrompt(text)) {
         const cleanPrompt = extractImagePrompt(text);
         renderGeminiImage(cleanPrompt || "A futuristic cyberpunk floating sanctuary in neon rain, 4k");
@@ -1423,6 +1501,24 @@
       h = h.replace(/\n\n/g, '<br><br>');
       return h;
     }
+  
+    // Cinematic Intro Smooth Zoom-Out Dismissal
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('kiro-splash-screen');
+        const content = document.getElementById('kiro-splash-content');
+        if (splash && content) {
+          content.style.transition = 'transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out';
+          content.style.transform = 'scale(1.15)';
+          splash.style.transition = 'opacity 0.9s ease-out';
+          splash.style.opacity = '0';
+          setTimeout(() => {
+            splash.style.display = 'none';
+          }, 950);
+        }
+      }, 1900);
+    });
+
   </script>
 </body>
 </html>
