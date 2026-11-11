@@ -30,30 +30,33 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'gradle'
 
-      - name: 4. Install kiro-mobile dependencies
+      - name: 4. Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: 5. Install kiro-mobile dependencies
         working-directory: kiro-mobile
         run: npm install
 
-      - name: 5. Generate Native Android Project
+      - name: 6. Generate Native Android Project
         working-directory: kiro-mobile
         run: npx expo prebuild --platform android --clean
 
-      - name: 6. Build Android Debug APK via Gradle
+      - name: 7. Build Android Debug APK via Gradle
         working-directory: kiro-mobile/android
         run: |
           chmod +x gradlew
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           ./gradlew assembleDebug --no-daemon
 
-      - name: 7. Upload Built APK Artifact
+      - name: 8. Upload Built APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Kiro-AI-Assistant-APK
           path: kiro-mobile/android/app/build/outputs/apk/debug/*.apk
 
-      - name: 8. Publish APK Release
+      - name: 9. Publish APK Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         with:
