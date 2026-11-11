@@ -26,10 +26,17 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: 🐘 Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: 🟢 Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: 📝 Accept Android SDK Licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: 📦 Install kiro-mobile dependencies
         working-directory: kiro-mobile
