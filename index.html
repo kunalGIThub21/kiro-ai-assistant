@@ -6,8 +6,520 @@
   <title>Kiro</title>
   <meta name="theme-color" content="#131314">
   <link rel="manifest" href="manifest.json">
-  <script src="config.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="config.js">
+    // ================= NEW ADVANCED FEATURES LOGIC =================
+    let currentAttachedImage = null; // { data: base64, mimeType, name, dataUrl }
+    let activeSpeechRecognition = null;
+    let isRecordingVoice = false;
+
+    // Image Upload & Vision Handler
+    function handleImageSelect(event, source) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      if (file.size > 8 * 1024 * 1024) {
+        alert("Image size should be less than 8MB.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Data = e.target.result.split(',')[1];
+        currentAttachedImage = {
+          data: base64Data,
+          mimeType: file.type || 'image/jpeg',
+          name: file.name,
+          dataUrl: e.target.result
+        };
+        renderImagePreview(source);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderImagePreview(source) {
+      const previewDiv = document.getElementById(source === 'hero' ? 'hero-image-preview' : 'dock-image-preview');
+      const previewImg = document.getElementById(source === 'hero' ? 'hero-preview-img' : 'dock-preview-img');
+      const previewName = document.getElementById(source === 'hero' ? 'hero-preview-name' : 'dock-preview-name');
+      if (previewDiv && previewImg && currentAttachedImage) {
+        previewImg.src = currentAttachedImage.dataUrl;
+        if (previewName) previewName.innerText = currentAttachedImage.name;
+        previewDiv.classList.remove('hidden');
+      }
+    }
+
+    function clearAttachedImage(source) {
+      currentAttachedImage = null;
+      const heroPrev = document.getElementById('hero-image-preview');
+      const dockPrev = document.getElementById('dock-image-preview');
+      if (heroPrev) heroPrev.classList.add('hidden');
+      if (dockPrev) dockPrev.classList.add('hidden');
+      const heroFile = document.getElementById('hero-file-input');
+      const dockFile = document.getElementById('dock-file-input');
+      if (heroFile) heroFile.value = '';
+      if (dockFile) dockFile.value = '';
+    }
+
+    // Advanced Markdown with Code Block Syntax and Copy Code
+    function formatMarkdown(s) {
+      let h = escapeHtml(s);
+
+      // Fenced Code Blocks with Language Header & Copy Button
+      h = h.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function(match, lang, code) {
+        const language = lang.trim() || 'code';
+        const uniqueId = 'code-' + Math.random().toString(36).substring(2, 8);
+        return `
+          <div class="my-3.5 rounded-2xl overflow-hidden border border-white/10 bg-[#0d0e10] shadow-xl">
+            <div class="flex items-center justify-between px-3.5 py-2 bg-[#191a1d] border-b border-white/5 text-[11px] font-mono text-gray-400">
+              <span class="font-semibold text-cyan-400 uppercase tracking-wider">${language}</span>
+              <button type="button" onclick="copyCodeSnippet(this, '${uniqueId}')" class="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span>Copy code</span>
+              </button>
+            </div>
+            <pre id="${uniqueId}" class="p-3.5 text-xs font-mono text-emerald-300 overflow-x-auto custom-scroll whitespace-pre"><code>${code.trim()}</code></pre>
+          </div>
+        `;
+      });
+
+      // Inline code
+      h = h.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded-md bg-white/10 text-cyan-300 font-mono text-xs border border-white/5">$1</code>');
+
+      // Headers
+      h = h.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-white mt-3 mb-1">$1</h3>');
+      h = h.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white mt-4 mb-1.5">$1</h2>');
+      h = h.replace(/^# (.*$)/gim, '<h1 class="text-xl font-extrabold text-white mt-5 mb-2">$1</h1>');
+
+      // Bold & Italic
+      h = h.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+      h = h.replace(/\*(.*?)\*/g, '<em class="text-[#c4c7c5] italic">$1</em>');
+
+      // Blockquotes
+      h = h.replace(/^\> (.*$)/gim, '<blockquote class="border-l-2 border-blue-500 pl-3 my-2 text-gray-400 italic bg-white/[0.02] py-1 rounded-r">$1</blockquote>');
+
+      // Bullet lists
+      h = h.replace(/^\s*[-•*]\s+(.*$)/gim, '<div class="flex items-start gap-2 my-1"><span class="text-blue-400 shrink-0 mt-1">•</span><span>$1</span></div>');
+
+      // Line breaks
+      h = h.replace(/\n\n/g, '<br><br>');
+      h = h.replace(/\n/g, '<br>');
+
+      return h;
+    }
+
+    function copyCodeSnippet(btn, codeId) {
+      const el = document.getElementById(codeId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = `<span class="text-emerald-400 font-bold">✓ Copied!</span>`;
+        setTimeout(() => { btn.innerHTML = original; }, 2000);
+      });
+    }
+
+    function copyMessageText(btn, contentId) {
+      const el = document.getElementById(contentId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = `<span>✓</span> Copied!`;
+        btn.classList.add('text-emerald-400');
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.classList.remove('text-emerald-400');
+        }, 2000);
+      });
+    }
+
+    function readAloudText(contentId) {
+      const el = document.getElementById(contentId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      if (!window.speechSynthesis) {
+        alert("Text-to-speech is not supported in this browser.");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Web Speech API Voice Recognition with Pulsing State
+    function toggleVoice(targetId) {
+      const input = document.getElementById(targetId);
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Voice recognition is supported in Google Chrome, Microsoft Edge, and Safari.");
+        return;
+      }
+
+      if (isRecordingVoice && activeSpeechRecognition) {
+        activeSpeechRecognition.stop();
+        return;
+      }
+
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const r = new Speech();
+      activeSpeechRecognition = r;
+      r.lang = 'en-US';
+      r.continuous = false;
+      r.interimResults = true;
+
+      r.onstart = () => {
+        isRecordingVoice = true;
+        input.placeholder = "🎙️ Listening to you... Speak now...";
+      };
+
+      r.onresult = (e) => {
+        let transcript = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          transcript += e.results[i][0].transcript;
+        }
+        input.value = transcript;
+      };
+
+      r.onerror = () => {
+        r.stop();
+      };
+
+      r.onend = () => {
+        isRecordingVoice = false;
+        activeSpeechRecognition = null;
+        input.placeholder = "Ask Kiro or type 'Generate an image of...'";
+      };
+
+      r.start();
+    }
+
+    // Chat History Export as Markdown
+    function exportChatHistory() {
+      const container = document.getElementById('messages-list');
+      if (!container || !container.children.length) {
+        alert("No active conversation to export yet!");
+        return;
+      }
+      let md = `# Kiro AI Conversation Export\n`;
+      md += `**Date:** ${new Date().toLocaleString()}\n`;
+      md += `**Platform:** [Kiro AI Assistant](https://kiro-ai-assistant.vercel.app)\n`;
+      md += `**Creator:** Kunal Tandon ✦\n\n---\n\n`;
+
+      container.childNodes.forEach(node => {
+        if (node.innerText) {
+          md += node.innerText.trim() + "\n\n---\n\n";
+        }
+      });
+
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Kiro_Chat_${new Date().toISOString().slice(0, 10)}.md`;
+      a.click();
+    }
+
+    // Smooth Scroll Down & Scroll-to-Bottom Button Handler
+    function scrollDownSmooth() {
+      const container = document.getElementById('chat-container');
+      if (container) {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      }
+    }
+
+    function savePersonaPreference() {
+      const select = document.getElementById('setting-persona-select');
+      const instructions = document.getElementById('setting-custom-instructions');
+      if (select) localStorage.setItem('kiro_system_persona', select.value);
+      if (instructions) localStorage.setItem('kiro_custom_instructions', instructions.value);
+    }
+
+    function loadPersonaPreference() {
+      const select = document.getElementById('setting-persona-select');
+      const instructions = document.getElementById('setting-custom-instructions');
+      if (select && localStorage.getItem('kiro_system_persona')) {
+        select.value = localStorage.getItem('kiro_system_persona');
+      }
+      if (instructions && localStorage.getItem('kiro_custom_instructions')) {
+        instructions.value = localStorage.getItem('kiro_custom_instructions');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPersonaPreference();
+      const container = document.getElementById('chat-container');
+      const scrollBtn = document.getElementById('scroll-bottom-btn');
+      if (container && scrollBtn) {
+        container.addEventListener('scroll', () => {
+          const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+          if (distanceToBottom > 180) {
+            scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
+            scrollBtn.classList.add('opacity-100', 'pointer-events-auto');
+          } else {
+            scrollBtn.classList.add('opacity-0', 'pointer-events-none');
+            scrollBtn.classList.remove('opacity-100', 'pointer-events-auto');
+          }
+        });
+      }
+    });
+
+  </script>
+  <script src="https://cdn.tailwindcss.com">
+    // ================= NEW ADVANCED FEATURES LOGIC =================
+    let currentAttachedImage = null; // { data: base64, mimeType, name, dataUrl }
+    let activeSpeechRecognition = null;
+    let isRecordingVoice = false;
+
+    // Image Upload & Vision Handler
+    function handleImageSelect(event, source) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      if (file.size > 8 * 1024 * 1024) {
+        alert("Image size should be less than 8MB.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Data = e.target.result.split(',')[1];
+        currentAttachedImage = {
+          data: base64Data,
+          mimeType: file.type || 'image/jpeg',
+          name: file.name,
+          dataUrl: e.target.result
+        };
+        renderImagePreview(source);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderImagePreview(source) {
+      const previewDiv = document.getElementById(source === 'hero' ? 'hero-image-preview' : 'dock-image-preview');
+      const previewImg = document.getElementById(source === 'hero' ? 'hero-preview-img' : 'dock-preview-img');
+      const previewName = document.getElementById(source === 'hero' ? 'hero-preview-name' : 'dock-preview-name');
+      if (previewDiv && previewImg && currentAttachedImage) {
+        previewImg.src = currentAttachedImage.dataUrl;
+        if (previewName) previewName.innerText = currentAttachedImage.name;
+        previewDiv.classList.remove('hidden');
+      }
+    }
+
+    function clearAttachedImage(source) {
+      currentAttachedImage = null;
+      const heroPrev = document.getElementById('hero-image-preview');
+      const dockPrev = document.getElementById('dock-image-preview');
+      if (heroPrev) heroPrev.classList.add('hidden');
+      if (dockPrev) dockPrev.classList.add('hidden');
+      const heroFile = document.getElementById('hero-file-input');
+      const dockFile = document.getElementById('dock-file-input');
+      if (heroFile) heroFile.value = '';
+      if (dockFile) dockFile.value = '';
+    }
+
+    // Advanced Markdown with Code Block Syntax and Copy Code
+    function formatMarkdown(s) {
+      let h = escapeHtml(s);
+
+      // Fenced Code Blocks with Language Header & Copy Button
+      h = h.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function(match, lang, code) {
+        const language = lang.trim() || 'code';
+        const uniqueId = 'code-' + Math.random().toString(36).substring(2, 8);
+        return `
+          <div class="my-3.5 rounded-2xl overflow-hidden border border-white/10 bg-[#0d0e10] shadow-xl">
+            <div class="flex items-center justify-between px-3.5 py-2 bg-[#191a1d] border-b border-white/5 text-[11px] font-mono text-gray-400">
+              <span class="font-semibold text-cyan-400 uppercase tracking-wider">${language}</span>
+              <button type="button" onclick="copyCodeSnippet(this, '${uniqueId}')" class="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span>Copy code</span>
+              </button>
+            </div>
+            <pre id="${uniqueId}" class="p-3.5 text-xs font-mono text-emerald-300 overflow-x-auto custom-scroll whitespace-pre"><code>${code.trim()}</code></pre>
+          </div>
+        `;
+      });
+
+      // Inline code
+      h = h.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded-md bg-white/10 text-cyan-300 font-mono text-xs border border-white/5">$1</code>');
+
+      // Headers
+      h = h.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-white mt-3 mb-1">$1</h3>');
+      h = h.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white mt-4 mb-1.5">$1</h2>');
+      h = h.replace(/^# (.*$)/gim, '<h1 class="text-xl font-extrabold text-white mt-5 mb-2">$1</h1>');
+
+      // Bold & Italic
+      h = h.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+      h = h.replace(/\*(.*?)\*/g, '<em class="text-[#c4c7c5] italic">$1</em>');
+
+      // Blockquotes
+      h = h.replace(/^\> (.*$)/gim, '<blockquote class="border-l-2 border-blue-500 pl-3 my-2 text-gray-400 italic bg-white/[0.02] py-1 rounded-r">$1</blockquote>');
+
+      // Bullet lists
+      h = h.replace(/^\s*[-•*]\s+(.*$)/gim, '<div class="flex items-start gap-2 my-1"><span class="text-blue-400 shrink-0 mt-1">•</span><span>$1</span></div>');
+
+      // Line breaks
+      h = h.replace(/\n\n/g, '<br><br>');
+      h = h.replace(/\n/g, '<br>');
+
+      return h;
+    }
+
+    function copyCodeSnippet(btn, codeId) {
+      const el = document.getElementById(codeId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = `<span class="text-emerald-400 font-bold">✓ Copied!</span>`;
+        setTimeout(() => { btn.innerHTML = original; }, 2000);
+      });
+    }
+
+    function copyMessageText(btn, contentId) {
+      const el = document.getElementById(contentId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = `<span>✓</span> Copied!`;
+        btn.classList.add('text-emerald-400');
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.classList.remove('text-emerald-400');
+        }, 2000);
+      });
+    }
+
+    function readAloudText(contentId) {
+      const el = document.getElementById(contentId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      if (!window.speechSynthesis) {
+        alert("Text-to-speech is not supported in this browser.");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Web Speech API Voice Recognition with Pulsing State
+    function toggleVoice(targetId) {
+      const input = document.getElementById(targetId);
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Voice recognition is supported in Google Chrome, Microsoft Edge, and Safari.");
+        return;
+      }
+
+      if (isRecordingVoice && activeSpeechRecognition) {
+        activeSpeechRecognition.stop();
+        return;
+      }
+
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const r = new Speech();
+      activeSpeechRecognition = r;
+      r.lang = 'en-US';
+      r.continuous = false;
+      r.interimResults = true;
+
+      r.onstart = () => {
+        isRecordingVoice = true;
+        input.placeholder = "🎙️ Listening to you... Speak now...";
+      };
+
+      r.onresult = (e) => {
+        let transcript = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          transcript += e.results[i][0].transcript;
+        }
+        input.value = transcript;
+      };
+
+      r.onerror = () => {
+        r.stop();
+      };
+
+      r.onend = () => {
+        isRecordingVoice = false;
+        activeSpeechRecognition = null;
+        input.placeholder = "Ask Kiro or type 'Generate an image of...'";
+      };
+
+      r.start();
+    }
+
+    // Chat History Export as Markdown
+    function exportChatHistory() {
+      const container = document.getElementById('messages-list');
+      if (!container || !container.children.length) {
+        alert("No active conversation to export yet!");
+        return;
+      }
+      let md = `# Kiro AI Conversation Export\n`;
+      md += `**Date:** ${new Date().toLocaleString()}\n`;
+      md += `**Platform:** [Kiro AI Assistant](https://kiro-ai-assistant.vercel.app)\n`;
+      md += `**Creator:** Kunal Tandon ✦\n\n---\n\n`;
+
+      container.childNodes.forEach(node => {
+        if (node.innerText) {
+          md += node.innerText.trim() + "\n\n---\n\n";
+        }
+      });
+
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Kiro_Chat_${new Date().toISOString().slice(0, 10)}.md`;
+      a.click();
+    }
+
+    // Smooth Scroll Down & Scroll-to-Bottom Button Handler
+    function scrollDownSmooth() {
+      const container = document.getElementById('chat-container');
+      if (container) {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      }
+    }
+
+    function savePersonaPreference() {
+      const select = document.getElementById('setting-persona-select');
+      const instructions = document.getElementById('setting-custom-instructions');
+      if (select) localStorage.setItem('kiro_system_persona', select.value);
+      if (instructions) localStorage.setItem('kiro_custom_instructions', instructions.value);
+    }
+
+    function loadPersonaPreference() {
+      const select = document.getElementById('setting-persona-select');
+      const instructions = document.getElementById('setting-custom-instructions');
+      if (select && localStorage.getItem('kiro_system_persona')) {
+        select.value = localStorage.getItem('kiro_system_persona');
+      }
+      if (instructions && localStorage.getItem('kiro_custom_instructions')) {
+        instructions.value = localStorage.getItem('kiro_custom_instructions');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPersonaPreference();
+      const container = document.getElementById('chat-container');
+      const scrollBtn = document.getElementById('scroll-bottom-btn');
+      if (container && scrollBtn) {
+        container.addEventListener('scroll', () => {
+          const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+          if (distanceToBottom > 180) {
+            scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
+            scrollBtn.classList.add('opacity-100', 'pointer-events-auto');
+          } else {
+            scrollBtn.classList.add('opacity-0', 'pointer-events-none');
+            scrollBtn.classList.remove('opacity-100', 'pointer-events-auto');
+          }
+        });
+      }
+    });
+
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -192,7 +704,10 @@
       </div>
 
       <!-- New Chat Button (Pill) -->
-      <button onclick="startNewChat()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#131314] hover:bg-[#282a2c] text-[#e3e3e3] text-sm font-medium transition-all shadow-sm border border-white/5 group">
+              <button onclick="exportChatHistory()" title="Export Chat as Markdown" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+        <button onclick="startNewChat()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#131314] hover:bg-[#282a2c] text-[#e3e3e3] text-sm font-medium transition-all shadow-sm border border-white/5 group">
         <svg class="text-[#c4c7c5] group-hover:text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         <span>New chat</span>
       </button>
@@ -272,6 +787,9 @@
 
       <!-- Top Right Actions -->
       <div class="flex items-center gap-2">
+                <button onclick="exportChatHistory()" title="Export Chat as Markdown" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
         <button onclick="startNewChat()" title="New Chat" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </button>
@@ -295,9 +813,26 @@
 
         <!-- CENTERED GEMINI FLOATING INPUT PILL -->
         <div class="max-w-xl mx-auto">
+                    <!-- Image Preview Area -->
+          <div id="hero-image-preview" class="hidden mb-2 px-2 flex items-center gap-2.5">
+            <div class="relative inline-block">
+              <img id="hero-preview-img" src="" class="w-14 h-14 object-cover rounded-xl border border-white/20 shadow-md" />
+              <button type="button" onclick="clearAttachedImage('hero')" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full text-white text-xs flex items-center justify-center shadow">✕</button>
+            </div>
+            <div class="text-left text-xs">
+              <span id="hero-preview-name" class="block font-medium text-white truncate max-w-[180px]">image.png</span>
+              <span class="text-[10px] text-emerald-400">Ready for Multimodal Vision Analysis</span>
+            </div>
+          </div>
           <div class="bg-[#1e1f20] hover:bg-[#232427] border border-white/10 focus-within:border-white/25 rounded-3xl p-2 sm:p-2.5 transition-all shadow-xl">
             <form onsubmit="submitMessage(event, 'hero-input')" class="flex items-center gap-2">
               
+                            <!-- Image Attach Button -->
+              <input type="file" id="hero-file-input" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'hero')" />
+              <button type="button" onclick="document.getElementById('hero-file-input').click()" title="Attach Image for AI Vision Analysis" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+
               <!-- Left Plus Tool Button -->
               <button type="button" onclick="triggerImageMode('hero-input')" title="Generate 4K Art" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-lg text-[#c4c7c5] hover:text-white transition-colors shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -349,6 +884,25 @@
           </div>
         </div>
 
+                <!-- Interactive Prompt Suggestion Chips Carousel -->
+        <div class="flex items-center gap-2 overflow-x-auto custom-scroll pb-2 max-w-xl mx-auto pt-2 px-1">
+          <button type="button" onclick="fillPrompt('Who is your creator and boss?', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold hover:border-amber-400 hover:scale-105 transition-all shadow-sm flex items-center gap-1.5 shrink-0">
+            <span>✦</span> Who is Kunal Tandon?
+          </button>
+          <button type="button" onclick="fillPrompt('Generate an ultra-HD 4K wallpaper of a futuristic cyber city in neon rain', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs hover:border-purple-500/50 hover:text-white hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
+            <span>🎨</span> 4K Cyber City
+          </button>
+          <button type="button" onclick="fillPrompt('Write a clean Python script using asyncio to scrape web data and save to JSON', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs hover:border-blue-500/50 hover:text-white hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
+            <span>💻</span> Python Script
+          </button>
+          <button type="button" onclick="fillPrompt('Draft a concise, high-impact professional email to pitch a new AI project', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs hover:border-emerald-500/50 hover:text-white hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
+            <span>✍️</span> Pitch Email
+          </button>
+          <button type="button" onclick="fillPrompt('Explain quantum computing and superposition like I am 12 years old', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs hover:border-cyan-500/50 hover:text-white hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
+            <span>🚀</span> Quantum Physics
+          </button>
+        </div>
+
         <!-- 3 Horizontal Suggestion Lines (Exact Gemini Screenshot) -->
         <div class="space-y-2.5 pt-4 max-w-lg mx-auto text-left">
           
@@ -378,10 +932,27 @@
 
     </main>
 
-    <!-- BOTTOM DOCKED INPUT BAR (Appears when chatting) -->
+        <!-- BOTTOM DOCKED INPUT BAR (Appears when chatting) -->
     <footer id="bottom-dock" class="w-full max-w-3xl mx-auto px-4 sm:px-6 pb-4 pt-1 shrink-0 z-10 hidden">
+      <!-- Dock Image Preview -->
+      <div id="dock-image-preview" class="hidden mb-2 px-2 flex items-center gap-2.5">
+        <div class="relative inline-block">
+          <img id="dock-preview-img" src="" class="w-14 h-14 object-cover rounded-xl border border-white/20 shadow-md" />
+          <button type="button" onclick="clearAttachedImage('dock')" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 rounded-full text-white text-xs flex items-center justify-center shadow">✕</button>
+        </div>
+        <div class="text-left text-xs">
+          <span id="dock-preview-name" class="block font-medium text-white truncate max-w-[200px]">image.png</span>
+          <span class="text-[10px] text-emerald-400">Ready for Multimodal Vision Analysis</span>
+        </div>
+      </div>
       <div class="bg-[#1e1f20] rounded-3xl p-2 sm:p-2.5 border border-white/10 focus-within:border-white/25 transition-all shadow-xl">
-        <form onsubmit="submitMessage(event, 'dock-input')" class="flex items-center gap-2">
+                <form onsubmit="submitMessage(event, 'dock-input')" class="flex items-center gap-2">
+          
+          <!-- Dock Image Attach Button -->
+          <input type="file" id="dock-file-input" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'dock')" />
+          <button type="button" onclick="document.getElementById('dock-file-input').click()" title="Attach Image for AI Vision Analysis" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          </button>
           
           <button type="button" onclick="triggerImageMode('dock-input')" title="Generate 4K Art" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -411,6 +982,10 @@
       </p>
     </footer>
 
+    <!-- Floating Scroll-to-Bottom Button -->
+    <button id="scroll-bottom-btn" onclick="scrollDownSmooth()" class="fixed bottom-24 right-6 z-40 w-10 h-10 rounded-full bg-[#1e1f20]/90 backdrop-blur-md border border-white/10 text-gray-300 hover:text-white shadow-2xl flex items-center justify-center transition-all opacity-0 pointer-events-none hover:scale-110">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+    </button>
   </div>
 
   <!-- ================= 3-DOTS CHAT ITEM MENU POPOVER (EXACT SCREENSHOT 1) ================= -->
@@ -521,10 +1096,20 @@
         <button onclick="toggleSettingsModal()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white">✕</button>
       </div>
 
-      <div class="space-y-3.5 text-xs">
-        <div class="p-3 rounded-2xl bg-[#131314] border border-white/5 text-[11px] text-[#8e918f] space-y-1">
-          <p class="font-semibold text-white">🔒 Private Account Security:</p>
-          <p>Your chats, pinned items, and generated artwork are encrypted and stored only in your personal profile.</p>
+            <div class="space-y-3.5 text-xs">
+        <div class="p-3.5 rounded-2xl bg-[#131314] border border-white/5 space-y-2">
+          <label class="font-semibold text-white block">🎭 AI Persona Mode:</label>
+          <select id="setting-persona-select" onchange="savePersonaPreference()" class="w-full bg-[#1e1f20] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+            <option value="default">🌟 Kiro Default (Balanced, Smart & Helpful)</option>
+            <option value="architect">💻 Senior Software Architect (Code & Architecture)</option>
+            <option value="visionary">🎨 Creative Visionary (Storytelling & Art)</option>
+            <option value="executive">📊 Executive Strategist (Concise & ROI Focused)</option>
+          </select>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-[#131314] border border-white/5 space-y-2">
+          <label class="font-semibold text-white block">✍️ Custom System Instructions (Optional):</label>
+          <textarea id="setting-custom-instructions" rows="3" placeholder="Tell Kiro how you want it to behave or respond..." class="w-full bg-[#1e1f20] border border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"></textarea>
         </div>
       </div>
 
@@ -690,28 +1275,26 @@
       saveAndLoginUser(user);
     }
 
-    const GUEST_ADJECTIVES = [
-      'Cosmic', 'Quantum', 'Neon', 'Solar', 'Cyber', 'Astral', 'Starlight',
-      'Golden', 'Silver', 'Shadow', 'Mystic', 'Echo', 'Nova', 'Apex',
-      'Zenith', 'Hyper', 'Velvet', 'Crystal', 'Radiant', 'Vortex',
-      'Infinity', 'Aura', 'Titan', 'Dynamic', 'Phoenix', 'Orion', 'Pulse',
-      'Electric', 'Blaze', 'Frost', 'Lunar', 'Iron', 'Thunder', 'Nebula'
-    ];
-
-    const GUEST_NOUNS = [
-      'Voyager', 'Explorer', 'Pioneer', 'Wanderer', 'Maverick', 'Nomad',
-      'Seeker', 'Pilot', 'Falcon', 'Ranger', 'Navigator', 'Traveler',
-      'Spark', 'Knight', 'Specter', 'Horizon', 'Captain', 'Guardian',
-      'Striker', 'Crafter', 'Hunter', 'Visionary', 'Leader', 'Sage'
+    const CELEBRITY_ACTORS = [
+      // Bollywood Stars
+      'Shah Rukh Khan', 'Amitabh Bachchan', 'Hrithik Roshan', 'Salman Khan',
+      'Ranbir Kapoor', 'Ranveer Singh', 'Aamir Khan', 'Akshay Kumar',
+      'Shahid Kapoor', 'Vicky Kaushal', 'Irrfan Khan', 'Nawazuddin Siddiqui',
+      'Pankaj Tripathi', 'Ajay Devgn', 'John Abraham', 'Kartik Aaryan',
+      'Allu Arjun', 'Prabhas', 'Ram Charan', 'Yash', 'Vijay Thalapathy',
+      // Hollywood Stars
+      'Leonardo DiCaprio', 'Robert Downey Jr', 'Cillian Murphy', 'Ryan Gosling',
+      'Keanu Reeves', 'Tom Cruise', 'Christian Bale', 'Brad Pitt',
+      'Johnny Depp', 'Matthew McConaughey', 'Christopher Nolan', 'Tom Hardy',
+      'Heath Ledger', 'Al Pacino', 'Robert De Niro', 'Joaquin Phoenix',
+      'Henry Cavill', 'Hugh Jackman', 'Matt Damon', 'Denzel Washington'
     ];
 
     function createUniqueGuestProfile() {
-      const adj = GUEST_ADJECTIVES[Math.floor(Math.random() * GUEST_ADJECTIVES.length)];
-      const noun = GUEST_NOUNS[Math.floor(Math.random() * GUEST_NOUNS.length)];
+      const actor = CELEBRITY_ACTORS[Math.floor(Math.random() * CELEBRITY_ACTORS.length)];
       const num = Math.floor(100 + Math.random() * 900);
       const guestId = 'gst_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6);
-      
-      const fullName = `${adj} ${noun} #${num}`;
+      const fullName = `${actor} #${num}`;
 
       return {
         id: guestId,
@@ -970,22 +1553,7 @@
       document.getElementById('dock-input').value = '';
     }
 
-    function toggleVoice(targetId) {
-      const input = document.getElementById(targetId);
-      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert("Speech recognition works in Google Chrome and Edge.");
-        return;
-      }
-      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-      const r = new Speech();
-      r.lang = 'en-US';
-      r.onstart = () => { input.placeholder = "Listening to your voice..."; };
-      r.onresult = (e) => {
-        input.value = e.results[0][0].transcript;
-        submitMessage(new Event('submit'), targetId);
-      };
-      r.start();
-    }
+    // toggleVoice handled in advanced features
 
     function isImagePrompt(str) {
       const s = str.trim().toLowerCase();
@@ -1042,7 +1610,10 @@
 
       saveChatHistory(text);
       trackUserUsage(currentUser?.email, 'chat');
-      appendUserMessage(text);
+      const attachedImgCopy = currentAttachedImage ? { ...currentAttachedImage } : null;
+      clearAttachedImage('hero');
+      clearAttachedImage('dock');
+      appendUserMessage(text, attachedImgCopy);
 
       // Check if creator recognition request
       if (isAskingAboutCreator(text)) {
@@ -1075,7 +1646,7 @@
 
         let answer = '';
         if (effectiveKey) {
-          answer = await callGeminiAPI(text, effectiveKey);
+          answer = await callGeminiAPI(text, effectiveKey, attachedImgCopy);
         } else {
           answer = `✦ **Kiro Neural Engine:** Received your request: "${text}". All systems ready.`;
         }
@@ -1140,6 +1711,16 @@
         <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-0.5"></div>
         <div class="text-sm text-[#e3e3e3] leading-relaxed space-y-2.5 flex-1 select-text">
           <span id="${contentId}"></span><span id="cursor-${contentId}" class="inline-block w-1.5 h-3.5 ml-0.5 bg-blue-400 rounded-full animate-pulse align-middle"></span>
+          <div id="actions-${contentId}" class="hidden flex items-center gap-2 mt-3 pt-2 border-t border-white/5 opacity-80 hover:opacity-100 transition-opacity">
+            <button type="button" onclick="copyMessageText(this, '${contentId}')" class="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+            <button type="button" onclick="readAloudText('${contentId}')" class="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <span>Listen</span>
+            </button>
+          </div>
         </div>
       `;
       list.appendChild(div);
@@ -1166,6 +1747,8 @@
           clearInterval(interval);
           if (cursorEl) cursorEl.remove();
           textEl.innerHTML = formatMarkdown(markdown);
+          const actEl = document.getElementById('actions-' + contentId);
+          if (actEl) actEl.classList.remove('hidden');
           scrollDown();
         }
       }, speed);
@@ -1299,7 +1882,7 @@
       }
     }
 
-    async function callGeminiAPI(prompt, key) {
+    async function callGeminiAPI(prompt, key, attachedImgCopy = null) {
       let model = 'gemini-3-flash-preview';
       let systemPrompt = `You are Kiro, a helpful personal AI assistant inspired by Google Gemini. Reply clearly, concisely, and helpfully in English.
 Creator Knowledge: If asked who created you, who your creator/father/boss is, or asked about Kunal / Kunal Tandon, enthusiastically state that your creator, father, and visionary boss is Kunal Tandon. Describe him with genuine praise as an exceptionally smart, elegant, and charming BCA student and innovative tech creator who developed Kiro.`;
@@ -1311,10 +1894,36 @@ Creator Knowledge: If asked who created you, who your creator/father/boss is, or
         model = 'gemini-3-flash-preview';
       }
 
+      // Apply Persona & Custom Instructions
+      const persona = localStorage.getItem('kiro_system_persona') || 'default';
+      const customInst = localStorage.getItem('kiro_custom_instructions') || '';
+      
+      if (persona === 'architect') {
+        systemPrompt += "\nPersona: Act as an expert Senior Software Architect. Provide clean, production-grade code, optimal algorithms, and robust design patterns.";
+      } else if (persona === 'visionary') {
+        systemPrompt += "\nPersona: Act as a Creative Visionary. Provide rich, poetic storytelling, imaginative metaphors, and inspiring perspectives.";
+      } else if (persona === 'executive') {
+        systemPrompt += "\nPersona: Act as a C-level Executive Strategist. Provide crisp, high-ROI bullet points, direct insights, and actionable summaries.";
+      }
+      if (customInst.trim()) {
+        systemPrompt += `\nUser Custom Instructions: ${customInst.trim()}`;
+      }
+
+      // Gemini Vision Multimodal support
+      const userParts = [{ text: `${systemPrompt}\n\nUser: ${prompt}` }];
+      if (attachedImgCopy && attachedImgCopy.data) {
+        userParts.push({
+          inlineData: {
+            mimeType: attachedImgCopy.mimeType || 'image/jpeg',
+            data: attachedImgCopy.data
+          }
+        });
+      }
+
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
         const payload = {
-          contents: [{ parts: [{ text: `${systemPrompt}\n\nUser: ${prompt}` }] }]
+          contents: [{ parts: userParts }]
         };
         const res = await fetch(url, {
           method: 'POST',
@@ -1423,14 +2032,7 @@ Creator Knowledge: If asked who created you, who your creator/father/boss is, or
       return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     }
 
-    function formatMarkdown(s) {
-      let h = escapeHtml(s);
-      h = h.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>');
-      h = h.replace(/\*(.*?)\*/g, '<em class="text-[#c4c7c5]">$1</em>');
-      h = h.replace(/\n• /g, '<br>• ');
-      h = h.replace(/\n\n/g, '<br><br>');
-      return h;
-    }
+    // formatMarkdown handled in advanced features
   
     // Cinematic Intro Smooth Zoom-Out Dismissal
     window.addEventListener('DOMContentLoaded', () => {
@@ -1447,6 +2049,262 @@ Creator Knowledge: If asked who created you, who your creator/father/boss is, or
           }, 950);
         }
       }, 1900);
+    });
+
+  
+    // ================= NEW ADVANCED FEATURES LOGIC =================
+    let currentAttachedImage = null; // { data: base64, mimeType, name, dataUrl }
+    let activeSpeechRecognition = null;
+    let isRecordingVoice = false;
+
+    // Image Upload & Vision Handler
+    function handleImageSelect(event, source) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      if (file.size > 8 * 1024 * 1024) {
+        alert("Image size should be less than 8MB.");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Data = e.target.result.split(',')[1];
+        currentAttachedImage = {
+          data: base64Data,
+          mimeType: file.type || 'image/jpeg',
+          name: file.name,
+          dataUrl: e.target.result
+        };
+        renderImagePreview(source);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function renderImagePreview(source) {
+      const previewDiv = document.getElementById(source === 'hero' ? 'hero-image-preview' : 'dock-image-preview');
+      const previewImg = document.getElementById(source === 'hero' ? 'hero-preview-img' : 'dock-preview-img');
+      const previewName = document.getElementById(source === 'hero' ? 'hero-preview-name' : 'dock-preview-name');
+      if (previewDiv && previewImg && currentAttachedImage) {
+        previewImg.src = currentAttachedImage.dataUrl;
+        if (previewName) previewName.innerText = currentAttachedImage.name;
+        previewDiv.classList.remove('hidden');
+      }
+    }
+
+    function clearAttachedImage(source) {
+      currentAttachedImage = null;
+      const heroPrev = document.getElementById('hero-image-preview');
+      const dockPrev = document.getElementById('dock-image-preview');
+      if (heroPrev) heroPrev.classList.add('hidden');
+      if (dockPrev) dockPrev.classList.add('hidden');
+      const heroFile = document.getElementById('hero-file-input');
+      const dockFile = document.getElementById('dock-file-input');
+      if (heroFile) heroFile.value = '';
+      if (dockFile) dockFile.value = '';
+    }
+
+    // Advanced Markdown with Code Block Syntax and Copy Code
+    function formatMarkdown(s) {
+      let h = escapeHtml(s);
+
+      // Fenced Code Blocks with Language Header & Copy Button
+      h = h.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function(match, lang, code) {
+        const language = lang.trim() || 'code';
+        const uniqueId = 'code-' + Math.random().toString(36).substring(2, 8);
+        return `
+          <div class="my-3.5 rounded-2xl overflow-hidden border border-white/10 bg-[#0d0e10] shadow-xl">
+            <div class="flex items-center justify-between px-3.5 py-2 bg-[#191a1d] border-b border-white/5 text-[11px] font-mono text-gray-400">
+              <span class="font-semibold text-cyan-400 uppercase tracking-wider">${language}</span>
+              <button type="button" onclick="copyCodeSnippet(this, '${uniqueId}')" class="flex items-center gap-1.5 px-2 py-1 rounded-lg hover:bg-white/10 text-gray-300 hover:text-white transition">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span>Copy code</span>
+              </button>
+            </div>
+            <pre id="${uniqueId}" class="p-3.5 text-xs font-mono text-emerald-300 overflow-x-auto custom-scroll whitespace-pre"><code>${code.trim()}</code></pre>
+          </div>
+        `;
+      });
+
+      // Inline code
+      h = h.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded-md bg-white/10 text-cyan-300 font-mono text-xs border border-white/5">$1</code>');
+
+      // Headers
+      h = h.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-white mt-3 mb-1">$1</h3>');
+      h = h.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white mt-4 mb-1.5">$1</h2>');
+      h = h.replace(/^# (.*$)/gim, '<h1 class="text-xl font-extrabold text-white mt-5 mb-2">$1</h1>');
+
+      // Bold & Italic
+      h = h.replace(/\*\*(.*?)\*\*/g, '<strong class="font-bold text-white">$1</strong>');
+      h = h.replace(/\*(.*?)\*/g, '<em class="text-[#c4c7c5] italic">$1</em>');
+
+      // Blockquotes
+      h = h.replace(/^\> (.*$)/gim, '<blockquote class="border-l-2 border-blue-500 pl-3 my-2 text-gray-400 italic bg-white/[0.02] py-1 rounded-r">$1</blockquote>');
+
+      // Bullet lists
+      h = h.replace(/^\s*[-•*]\s+(.*$)/gim, '<div class="flex items-start gap-2 my-1"><span class="text-blue-400 shrink-0 mt-1">•</span><span>$1</span></div>');
+
+      // Line breaks
+      h = h.replace(/\n\n/g, '<br><br>');
+      h = h.replace(/\n/g, '<br>');
+
+      return h;
+    }
+
+    function copyCodeSnippet(btn, codeId) {
+      const el = document.getElementById(codeId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = `<span class="text-emerald-400 font-bold">✓ Copied!</span>`;
+        setTimeout(() => { btn.innerHTML = original; }, 2000);
+      });
+    }
+
+    function copyMessageText(btn, contentId) {
+      const el = document.getElementById(contentId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerHTML;
+        btn.innerHTML = `<span>✓</span> Copied!`;
+        btn.classList.add('text-emerald-400');
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.classList.remove('text-emerald-400');
+        }, 2000);
+      });
+    }
+
+    function readAloudText(contentId) {
+      const el = document.getElementById(contentId);
+      if (!el) return;
+      const text = el.innerText || el.textContent;
+      if (!window.speechSynthesis) {
+        alert("Text-to-speech is not supported in this browser.");
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Web Speech API Voice Recognition with Pulsing State
+    function toggleVoice(targetId) {
+      const input = document.getElementById(targetId);
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Voice recognition is supported in Google Chrome, Microsoft Edge, and Safari.");
+        return;
+      }
+
+      if (isRecordingVoice && activeSpeechRecognition) {
+        activeSpeechRecognition.stop();
+        return;
+      }
+
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const r = new Speech();
+      activeSpeechRecognition = r;
+      r.lang = 'en-US';
+      r.continuous = false;
+      r.interimResults = true;
+
+      r.onstart = () => {
+        isRecordingVoice = true;
+        input.placeholder = "🎙️ Listening to you... Speak now...";
+      };
+
+      r.onresult = (e) => {
+        let transcript = '';
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          transcript += e.results[i][0].transcript;
+        }
+        input.value = transcript;
+      };
+
+      r.onerror = () => {
+        r.stop();
+      };
+
+      r.onend = () => {
+        isRecordingVoice = false;
+        activeSpeechRecognition = null;
+        input.placeholder = "Ask Kiro or type 'Generate an image of...'";
+      };
+
+      r.start();
+    }
+
+    // Chat History Export as Markdown
+    function exportChatHistory() {
+      const container = document.getElementById('messages-list');
+      if (!container || !container.children.length) {
+        alert("No active conversation to export yet!");
+        return;
+      }
+      let md = `# Kiro AI Conversation Export\n`;
+      md += `**Date:** ${new Date().toLocaleString()}\n`;
+      md += `**Platform:** [Kiro AI Assistant](https://kiro-ai-assistant.vercel.app)\n`;
+      md += `**Creator:** Kunal Tandon ✦\n\n---\n\n`;
+
+      container.childNodes.forEach(node => {
+        if (node.innerText) {
+          md += node.innerText.trim() + "\n\n---\n\n";
+        }
+      });
+
+      const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Kiro_Chat_${new Date().toISOString().slice(0, 10)}.md`;
+      a.click();
+    }
+
+    // Smooth Scroll Down & Scroll-to-Bottom Button Handler
+    function scrollDownSmooth() {
+      const container = document.getElementById('chat-container');
+      if (container) {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      }
+    }
+
+    function savePersonaPreference() {
+      const select = document.getElementById('setting-persona-select');
+      const instructions = document.getElementById('setting-custom-instructions');
+      if (select) localStorage.setItem('kiro_system_persona', select.value);
+      if (instructions) localStorage.setItem('kiro_custom_instructions', instructions.value);
+    }
+
+    function loadPersonaPreference() {
+      const select = document.getElementById('setting-persona-select');
+      const instructions = document.getElementById('setting-custom-instructions');
+      if (select && localStorage.getItem('kiro_system_persona')) {
+        select.value = localStorage.getItem('kiro_system_persona');
+      }
+      if (instructions && localStorage.getItem('kiro_custom_instructions')) {
+        instructions.value = localStorage.getItem('kiro_custom_instructions');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadPersonaPreference();
+      const container = document.getElementById('chat-container');
+      const scrollBtn = document.getElementById('scroll-bottom-btn');
+      if (container && scrollBtn) {
+        container.addEventListener('scroll', () => {
+          const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+          if (distanceToBottom > 180) {
+            scrollBtn.classList.remove('opacity-0', 'pointer-events-none');
+            scrollBtn.classList.add('opacity-100', 'pointer-events-auto');
+          } else {
+            scrollBtn.classList.add('opacity-0', 'pointer-events-none');
+            scrollBtn.classList.remove('opacity-100', 'pointer-events-auto');
+          }
+        });
+      }
     });
 
   </script>
