@@ -153,122 +153,24 @@
 
   <!-- ================= AUTHENTICATION MODAL ================= -->
   <div id="auth-screen" class="fixed inset-0 z-50 bg-[#131314]/95 backdrop-blur-xl flex items-center justify-center p-4">
-    <div class="bg-[#1e1f20] border border-white/10 rounded-[32px] max-w-sm w-full p-8 shadow-2xl relative space-y-6">
+    <div class="bg-[#1e1f20] border border-white/10 rounded-[32px] max-w-sm w-full p-8 shadow-2xl relative space-y-6 text-center">
       
-      <div class="text-center space-y-2">
+      <div class="space-y-2">
         <div class="gemini-diamond-star mx-auto mb-2"></div>
         <h2 class="text-2xl font-bold text-white tracking-tight">Kiro</h2>
-        <p class="text-xs text-[#8e918f]">Sign in with your private account. All chats and images stay securely isolated.</p>
+        <p class="text-xs text-[#8e918f]">Start chatting immediately with your personal AI assistant. No account or password required.</p>
       </div>
 
-      <!-- DEFAULT AUTH VIEW -->
-      <div id="auth-default-view" class="space-y-4">
-        <!-- No Account Needed (Instant 1-Click Access) -->
-        <button onclick="handleNoAccountAccess()" class="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 rounded-full bg-white hover:bg-slate-100 text-black font-bold text-xs transition-all shadow-lg active:scale-95 group">
+      <!-- SINGLE PRIMARY CTA: NO ACCOUNT NEEDED -->
+      <div class="pt-2">
+        <button onclick="handleNoAccountAccess()" class="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-full bg-white hover:bg-slate-100 text-black font-bold text-sm transition-all shadow-xl active:scale-95 group">
           <span class="text-base group-hover:scale-110 transition-transform">⚡</span>
           <span>No Account Needed (Instant Start)</span>
         </button>
-
-        <div class="flex items-center gap-3 pt-1">
-          <div class="flex-1 h-px bg-white/10"></div>
-          <span class="text-[10px] text-[#8e918f] font-semibold uppercase">Or Email</span>
-          <div class="flex-1 h-px bg-white/10"></div>
-        </div>
-
-        <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-3">
-          <div id="field-name-group" class="hidden">
-            <input 
-              type="text" 
-              id="auth-name" 
-              placeholder="Full Name" 
-              class="w-full bg-[#131314] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-[#8e918f] focus:outline-none focus:border-[#4285f4]"
-            />
-          </div>
-          <div>
-            <input 
-              type="email" 
-              id="auth-email" 
-              required 
-              placeholder="name@example.com" 
-              class="w-full bg-[#131314] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-[#8e918f] focus:outline-none focus:border-[#4285f4]"
-            />
-          </div>
-          <div>
-            <input 
-              type="password" 
-              id="auth-password" 
-              required 
-              placeholder="Password" 
-              class="w-full bg-[#131314] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-[#8e918f] focus:outline-none focus:border-[#4285f4]"
-            />
-          </div>
-          <button 
-            type="submit" 
-            id="auth-submit-btn" 
-            class="w-full py-3 rounded-full bg-[#4285f4] hover:bg-blue-500 text-white font-bold text-xs transition-all shadow-md active:scale-95"
-          >
-            Sign In
-          </button>
-        </form>
-
-        <div class="text-center pt-1 border-t border-white/5">
-          <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-[#8e918f] hover:text-[#4285f4] font-medium">
-            Don't have an account? <span class="underline text-white">Create one</span>
-          </button>
-        </div>
       </div>
 
-      <!-- GOOGLE AUTH CARD VIEW (EMBEDDED, NO POPUPS) -->
-      <div id="auth-google-card" class="hidden space-y-4">
-        <div class="flex items-center justify-between pb-2 border-b border-white/10">
-          <div class="flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
-            <span class="text-sm font-semibold text-white">Sign in with Google</span>
-          </div>
-          <button type="button" onclick="closeGoogleCard()" class="text-xs text-[#8e918f] hover:text-white transition-colors">✕ Back</button>
-        </div>
-
-        <p class="text-[11px] text-[#8e918f]">Sign in with your Google account to keep your chats private and synced.</p>
-
-        <!-- Saved Accounts (if previously signed in) -->
-        <div id="google-known-accounts-box" class="hidden space-y-2">
-          <div class="text-[10px] uppercase tracking-wider text-[#8e918f] font-semibold">Saved Accounts</div>
-          <div id="google-known-accounts-list" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
-          <div class="text-[10px] text-center text-[#8e918f] pt-1">Or sign in with another Google account:</div>
-        </div>
-
-        <div id="google-auth-error" class="hidden text-[11px] text-rose-400 bg-rose-500/10 border border-rose-500/20 px-3 py-2 rounded-xl"></div>
-
-        <div class="space-y-3">
-          <div>
-            <label class="block text-[11px] text-[#8e918f] mb-1 font-medium">Your Name</label>
-            <input 
-              type="text" 
-              id="google-input-name" 
-              placeholder="e.g. Rahul Sharma" 
-              onkeydown="if(event.key==='Enter') submitGoogleAuth()"
-              class="w-full bg-[#131314] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-[#8e918f] focus:outline-none focus:border-[#4285f4] transition-colors"
-            />
-          </div>
-          <div>
-            <label class="block text-[11px] text-[#8e918f] mb-1 font-medium">Google Account Email</label>
-            <input 
-              type="email" 
-              id="google-input-email" 
-              placeholder="name@gmail.com" 
-              onkeydown="if(event.key==='Enter') submitGoogleAuth()"
-              class="w-full bg-[#131314] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-[#8e918f] focus:outline-none focus:border-[#4285f4] transition-colors"
-            />
-          </div>
-        </div>
-
-        <button 
-          type="button" 
-          onclick="submitGoogleAuth()" 
-          class="w-full py-3 rounded-full bg-[#4285f4] hover:bg-blue-500 text-white font-bold text-xs transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
-        >
-          <span>Continue with Google</span>
-        </button>
+      <div class="text-[10px] text-[#8e918f] tracking-wide pt-1">
+        ✦ Developed with passion by <span class="text-white font-medium">Kunal Tandon</span>
       </div>
 
     </div>
