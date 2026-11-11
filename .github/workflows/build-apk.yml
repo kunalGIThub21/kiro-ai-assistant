@@ -48,32 +48,23 @@ jobs:
         run: |
           chmod +x gradlew
           echo "sdk.dir=$ANDROID_HOME" > local.properties
-          ./gradlew assembleDebug --no-daemon > /tmp/gradle.log 2>&1 || true
+          echo "kotlinVersion=1.9.25" >> gradle.properties
+          echo "android.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
+          ./gradlew assembleDebug --no-daemon -PkotlinVersion=1.9.25
 
-      - name: 8. Publish Build Log to Branch
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git checkout -B build-logs
-          mkdir -p logs
-          cp /tmp/gradle.log logs/gradle-build.log
-          git add logs/
-          git commit -m "Capture complete gradle build log [skip ci]" || true
-          git push -f origin build-logs || true
-
-      - name: 9. Find and Stage APK
+      - name: 8. Find and Stage APK
         run: |
           mkdir -p apk_output
           find . -name "*.apk" -exec cp {} apk_output/kiro-ai-assistant.apk \;
-          ls -la apk_output/
+          ls -lh apk_output/
 
-      - name: 10. Upload Built APK Artifact
+      - name: 9. Upload Built APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Kiro-AI-Assistant-APK
           path: apk_output/kiro-ai-assistant.apk
 
-      - name: 11. Publish APK Release
+      - name: 10. Publish APK Release
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         with:
