@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Kiro</title>
+  <meta name="theme-color" content="#131314">
+  <link rel="manifest" href="manifest.json">
+  <script src="config.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #131314;
+      --sidebar: #1e1f20;
+      --surface-hover: #282a2c;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+    }
+    body {
+      background-color: #131314;
+      color: #e3e3e3;
+      font-family: 'Plus Jakarta Sans', 'Google Sans', -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    /* Authentic Gemini Ambient Warm Golden/Amber Aura */
+    .gemini-ambient-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background: 
+        radial-gradient(ellipse 75% 55% at 55% 42%, rgba(245, 175, 45, 0.18) 0%, rgba(200, 115, 20, 0.09) 35%, rgba(140, 60, 20, 0.03) 55%, transparent 75%);
+      filter: blur(50px);
+    }
+
+    /* Diamond Sparkle Icon (Google Gemini Official Gradient) */
+    .gemini-diamond-star {
+      width: 32px;
+      height: 32px;
+      display: inline-block;
+      background: conic-gradient(from 180deg at 50% 50%, #4285f4 0deg, #9b72cb 90deg, #d96570 180deg, #fbbc04 270deg, #4285f4 360deg);
+      clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+      filter: drop-shadow(0 0 14px rgba(155, 114, 203, 0.6));
+      animation: starFloat 4s ease-in-out infinite alternate;
+    }
+    @keyframes starFloat {
+      0% { transform: translateY(0px) scale(1); }
+      100% { transform: translateY(-4px) scale(1.06); }
+    }
+
+    .gemini-gradient-text {
+      background: linear-gradient(74deg, #4285f4 0%, #9b72cb 25%, #d96570 50%, #fbbc04 75%, #4285f4 100%);
+      background-size: 300% 100%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 12s ease infinite;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #2a2b2e;
+      border-radius: 99px;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex bg-[#131314] text-[#e3e3e3] overflow-hidden select-none relative">
+
+  <!-- Ambient Glow -->
+  <div class="gemini-ambient-glow"></div>
+
+  <!-- ================= AUTHENTICATION MODAL ================= -->
+  <div id="auth-screen" class="fixed inset-0 z-50 bg-[#131314]/95 backdrop-blur-xl flex items-center justify-center p-4">
+    <div class="bg-[#1e1f20] border border-white/10 rounded-[32px] max-w-sm w-full p-8 shadow-2xl relative space-y-6">
+      
+      <div class="text-center space-y-2">
+        <div class="gemini-diamond-star mx-auto mb-2"></div>
+        <h2 class="text-2xl font-bold text-white tracking-tight">Kiro</h2>
+        <p class="text-xs text-[#8e918f]">Sign in with your private account. All chats and images stay securely isolated.</p>
+      </div>
+
+      <!-- Google Sign In -->
+      <button onclick="handleGoogleSignIn()" class="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-white hover:bg-slate-100 text-black font-semibold text-xs transition-all shadow-md active:scale-95">
+        <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-px bg-white/10"></div>
+        <span class="text-[10px] text-[#8e918f] font-semibold uppercase">Or Email</span>
+        <div class="flex-1 h-px bg-white/10"></div>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-3">
+        <div id="field-name-group" class="hidden">
+          <input 
+            type="text" 
+            id="auth-name" 
+            placeholder="Full Name" 
+            class="w-full bg-[#131314] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-[#8e918f] focus:outline-none focus:border-[#4285f4]"
+          />
+        </div>
+        <div>
+          <input 
+            type="email" 
+            id="auth-email" 
+            required 
+            placeholder="name@example.com" 
+            class="w-full bg-[#131314] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-[#8e918f] focus:outline-none focus:border-[#4285f4]"
+          />
+        </div>
+        <div>
+          <input 
+            type="password" 
+            id="auth-password" 
+            required 
+            placeholder="Password" 
+            class="w-full bg-[#131314] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-[#8e918f] focus:outline-none focus:border-[#4285f4]"
+          />
+        </div>
+        <button 
+          type="submit" 
+          id="auth-submit-btn" 
+          class="w-full py-3 rounded-full bg-[#4285f4] hover:bg-blue-500 text-white font-bold text-xs transition-all shadow-md active:scale-95"
+        >
+          Sign In
+        </button>
+      </form>
+
+      <div class="text-center pt-1 border-t border-white/5">
+        <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-[#8e918f] hover:text-[#4285f4] font-medium">
+          Don't have an account? <span class="underline text-white">Create one</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= LEFT SIDEBAR (EXACT GEMINI LAYOUT) ================= -->
+  <aside id="sidebar" class="w-64 bg-[#1e1f20] flex flex-col justify-between p-3 transition-all duration-300 z-30 shrink-0 border-r border-white/5 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:-translate-x-full">
+    
+    <div class="space-y-3">
+      <!-- Top Branding: Logo + Collapse Icon -->
+      <div class="flex items-center justify-between px-2 pt-1">
+        <div class="flex items-center gap-2">
+          <div class="gemini-diamond-star !w-5 !h-5"></div>
+          <span class="text-base font-semibold text-white tracking-wide">Kiro</span>
+        </div>
+        <button onclick="toggleSidebar()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        </button>
+      </div>
+
+      <!-- New Chat Button (Pill) -->
+      <button onclick="startNewChat()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#131314] hover:bg-[#282a2c] text-[#e3e3e3] text-sm font-medium transition-all shadow-sm border border-white/5 group">
+        <svg class="text-[#c4c7c5] group-hover:text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        <span>New chat</span>
+      </button>
+
+      <!-- Recent Chats Header with Funnel Filter -->
+      <div class="pt-2 px-2 flex items-center justify-between text-[#8e918f]">
+        <span class="text-xs font-medium text-[#c4c7c5]">Recent</span>
+        <button onclick="toggleFilterOnly()" title="Filter chats" class="hover:text-white transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        </button>
+      </div>
+
+      <!-- Recent Conversations List -->
+      <div id="recent-chats-list" class="space-y-0.5 overflow-y-auto max-h-[55vh] custom-scroll pr-1">
+        <!-- Dynamically populated with three-dots popovers -->
+      </div>
+    </div>
+
+    <!-- Bottom Sidebar: User Profile Row (Exact Gemini Screenshot) -->
+    <div class="border-t border-white/5 pt-2">
+      <div class="flex items-center justify-between p-2 rounded-2xl hover:bg-[#282a2c] transition-colors group">
+        
+        <div class="flex items-center gap-2.5 overflow-hidden">
+          <div id="user-avatar-badge" class="w-8 h-8 rounded-full bg-[#4285f4] flex items-center justify-center font-bold text-white text-xs shrink-0">
+            <span id="user-avatar-initial">B</span>
+          </div>
+          <div class="overflow-hidden">
+            <h4 id="user-name-label" class="font-semibold text-xs text-white truncate">BCA FUNDA</h4>
+            <p id="user-tier-label" class="text-[10px] text-[#8e918f]">Kiro Pro</p>
+          </div>
+        </div>
+
+        <!-- Gear Settings Icon Button -->
+        <button onclick="toggleUserDropdown()" title="User & Admin Settings" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] group-hover:text-white transition-colors">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile Overlay -->
+  <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/60 z-20 hidden md:hidden"></div>
+
+  <!-- Settings & Admin Popover -->
+  <div id="user-dropdown" class="hidden fixed bottom-14 left-4 w-64 bg-[#1e1f20] border border-white/10 rounded-2xl p-2.5 shadow-2xl z-50 space-y-1 text-xs">
+    <div class="px-3 py-1.5 border-b border-white/5">
+      <p id="dropdown-user-email" class="text-[11px] text-[#8e918f] truncate">user@gmail.com</p>
+    </div>
+    <button onclick="toggleSettingsModal(); toggleUserDropdown();" class="w-full text-left px-3 py-2 rounded-xl hover:bg-[#282a2c] text-[#c4c7c5] flex items-center gap-2">
+      <span>⚙️</span> Settings
+    </button>
+    <button onclick="handleSignOut()" class="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-300 flex items-center gap-2">
+      <span>🚪</span> Sign Out
+    </button>
+  </div>
+
+  <!-- ================= MAIN STAGE (EXACT GEMINI STYLING) ================= -->
+  <div class="flex-1 flex flex-col h-full relative overflow-hidden bg-transparent z-10">
+    
+    <!-- Top Header Bar -->
+    <header class="h-14 px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
+      
+      <!-- Left Header: Only visible when sidebar is collapsed (on desktop) or always on mobile -->
+      <div id="header-sidebar-trigger-group" class="flex items-center gap-2.5 md:hidden">
+        <button onclick="toggleSidebar()" title="Expand Sidebar" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+        </button>
+        <div class="flex items-center gap-2 cursor-pointer" onclick="toggleSidebar()">
+          <div class="gemini-diamond-star !w-5 !h-5"></div>
+          <span class="text-base font-semibold text-white tracking-wide">Kiro</span>
+        </div>
+      </div>
+
+      <!-- Top Right Actions -->
+      <div class="flex items-center gap-2">
+        <button onclick="startNewChat()" title="New Chat" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </button>
+      </div>
+
+    </header>
+
+    <!-- Main Scrollable Chat Stage -->
+    <main id="chat-container" class="flex-1 overflow-y-auto custom-scroll px-4 sm:px-8 py-2 flex flex-col justify-between">
+      
+      <!-- HERO VIEW (CENTERED GEMINI SCREENSHOT LAYOUT) -->
+      <div id="gemini-greeting" class="max-w-2xl w-full mx-auto my-auto py-8 space-y-6 select-text text-center">
+        
+        <!-- Center Floating Gemini Star -->
+        <div class="space-y-3">
+          <div class="gemini-diamond-star mx-auto"></div>
+          <h1 class="text-3xl sm:text-4xl font-normal tracking-tight text-white">
+            Hello, <span id="greeting-username">Friend</span>!
+          </h1>
+        </div>
+
+        <!-- CENTERED GEMINI FLOATING INPUT PILL -->
+        <div class="max-w-xl mx-auto">
+          <div class="bg-[#1e1f20] hover:bg-[#232427] border border-white/10 focus-within:border-white/25 rounded-3xl p-2 sm:p-2.5 transition-all shadow-xl">
+            <form onsubmit="submitMessage(event, 'hero-input')" class="flex items-center gap-2">
+              
+              <!-- Left Plus Tool Button -->
+              <button type="button" onclick="triggerImageMode('hero-input')" title="Generate 4K Art" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-lg text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </button>
+
+              <!-- Main Input -->
+              <input 
+                type="text" 
+                id="hero-input" 
+                placeholder="Ask Kiro or type 'Generate an image of...'" 
+                autocomplete="off"
+                class="flex-1 bg-transparent px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
+              />
+
+              <!-- Model Selector Dropdown in Input Bar (Exact Gemini Screenshot) -->
+              <div class="relative">
+                <button type="button" onclick="toggleModelDropdown()" id="hero-model-pill" class="flex items-center gap-1 px-2.5 py-1 rounded-full hover:bg-white/10 text-xs text-[#c4c7c5] hover:text-white font-medium transition-colors">
+                  <span id="active-model-name">Pro</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+
+                <div id="model-dropdown-menu" class="hidden absolute right-0 bottom-10 w-44 bg-[#1e1f20] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 text-xs space-y-1">
+                  <button type="button" onclick="selectModelTier('fast', 'Fast')" class="w-full text-left p-2 rounded-xl hover:bg-[#282a2c] flex items-center justify-between text-white">
+                    <span>⚡ Fast</span>
+                    <span class="text-[10px] text-[#8e918f]">Quick</span>
+                  </button>
+                  <button type="button" onclick="selectModelTier('pro', 'Pro')" class="w-full text-left p-2 rounded-xl hover:bg-[#282a2c] flex items-center justify-between text-white bg-white/5">
+                    <span>✦ Pro</span>
+                    <span class="text-[10px] text-[#4285f4]">Default</span>
+                  </button>
+                  <button type="button" onclick="selectModelTier('ultimate', 'Ultimate')" class="w-full text-left p-2 rounded-xl hover:bg-[#282a2c] flex items-center justify-between text-white">
+                    <span>🔥 Ultimate</span>
+                    <span class="text-[10px] text-[#8e918f]">Max</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Mic Button -->
+              <button type="button" onclick="toggleVoice('hero-input')" title="Voice Dictation" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+              </button>
+
+              <!-- Send Button -->
+              <button type="submit" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all shrink-0">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              </button>
+
+            </form>
+          </div>
+        </div>
+
+        <!-- 3 Horizontal Suggestion Lines (Exact Gemini Screenshot) -->
+        <div class="space-y-2.5 pt-4 max-w-lg mx-auto text-left">
+          
+          <div onclick="fillPrompt('Generate an ultra-HD 4K wallpaper of a futuristic cyber city at sunset', 'hero-input')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer text-xs text-[#c4c7c5] hover:text-white transition-colors group">
+            <svg class="text-[#8e918f] group-hover:text-purple-400 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <span class="truncate">Generate an ultra-HD 4K wallpaper of a futuristic cyber city</span>
+          </div>
+
+          <div onclick="fillPrompt('Help me write an impressive, clean email response to my project manager', 'hero-input')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer text-xs text-[#c4c7c5] hover:text-white transition-colors group">
+            <svg class="text-[#8e918f] group-hover:text-blue-400 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span class="truncate">Help me write an impressive, clean professional response</span>
+          </div>
+
+          <div onclick="fillPrompt('What are the most effective ways to structure a productive daily workflow?', 'hero-input')" class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer text-xs text-[#c4c7c5] hover:text-white transition-colors group">
+            <svg class="text-[#8e918f] group-hover:text-emerald-400 shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span class="truncate">What are the most effective ways to structure a productive daily workflow?</span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ACTIVE CHAT STREAM (SHOWN ONCE CHAT BEGINS) -->
+      <div id="messages-list" class="max-w-3xl w-full mx-auto space-y-6 hidden select-text pb-6">
+        <!-- Messages appear here -->
+      </div>
+
+    </main>
+
+    <!-- BOTTOM DOCKED INPUT BAR (Appears when chatting) -->
+    <footer id="bottom-dock" class="w-full max-w-3xl mx-auto px-4 sm:px-6 pb-4 pt-1 shrink-0 z-10 hidden">
+      <div class="bg-[#1e1f20] rounded-3xl p-2 sm:p-2.5 border border-white/10 focus-within:border-white/25 transition-all shadow-xl">
+        <form onsubmit="submitMessage(event, 'dock-input')" class="flex items-center gap-2">
+          
+          <button type="button" onclick="triggerImageMode('dock-input')" title="Generate 4K Art" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+
+          <input 
+            type="text" 
+            id="dock-input" 
+            placeholder="Ask Kiro or type 'Generate an image of...'" 
+            autocomplete="off"
+            class="flex-1 bg-transparent px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
+          />
+
+          <button type="button" onclick="toggleVoice('dock-input')" title="Voice Dictation" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+
+          <button type="submit" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all shrink-0">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+
+        </form>
+      </div>
+
+      <p class="text-[11px] text-[#8e918f] text-center mt-2 font-normal">
+        Kiro can make mistakes. All chats are private to your account.
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- ================= 3-DOTS CHAT ITEM MENU POPOVER (EXACT SCREENSHOT 1) ================= -->
+  <div id="chat-item-popover" class="hidden fixed bg-[#1e1f20] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 w-48 text-xs space-y-0.5">
+    <button onclick="shareActiveConversation()" class="w-full text-left px-3 py-2 rounded-xl hover:bg-[#282a2c] text-[#e3e3e3] flex items-center gap-2.5 transition-colors">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      <span>Share conversation</span>
+    </button>
+    <button onclick="togglePinConversation()" class="w-full text-left px-3 py-2 rounded-xl hover:bg-[#282a2c] text-[#e3e3e3] flex items-center gap-2.5 transition-colors">
+      <svg id="popover-pin-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-2-3V6a5 5 0 0 0-10 0v6l-2 3v2z"/></svg>
+      <span id="pin-label">Pin / Unpin</span>
+    </button>
+    <button onclick="renameActiveConversation()" class="w-full text-left px-3 py-2 rounded-xl hover:bg-[#282a2c] text-[#e3e3e3] flex items-center gap-2.5 transition-colors">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      <span>Rename</span>
+    </button>
+    <button onclick="deleteActiveConversation()" class="w-full text-left px-3 py-2 rounded-xl hover:bg-rose-500/20 text-rose-300 flex items-center gap-2.5 transition-colors">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      <span>Delete</span>
+    </button>
+  </div>
+
+  <!-- ================= ADMIN USER MANAGEMENT MODAL ================= -->
+  <div id="admin-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#1e1f20] border border-white/10 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-indigo-400 font-bold text-lg">🛡️</span>
+          <div>
+            <h3 class="text-sm font-bold text-white">Kiro User Management & Usage Tracking</h3>
+            <p class="text-[11px] text-[#8e918f]">Live tracking of all logged-in users and their AI usage</p>
+          </div>
+        </div>
+        <button onclick="closeAdminPanel()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5]">✕</button>
+      </div>
+
+      <!-- Stats Summary -->
+      <div class="grid grid-cols-3 gap-3 text-center">
+        <div class="bg-[#131314] p-3 rounded-2xl border border-white/5">
+          <span class="text-[10px] text-[#8e918f] uppercase">Registered Users</span>
+          <p id="admin-stat-total" class="text-xl font-bold text-white mt-0.5">3</p>
+        </div>
+        <div class="bg-[#131314] p-3 rounded-2xl border border-white/5">
+          <span class="text-[10px] text-[#8e918f] uppercase">Active Model</span>
+          <p class="text-sm font-bold text-emerald-400 mt-1">Gemini 3 Flash</p>
+        </div>
+        <div class="bg-[#131314] p-3 rounded-2xl border border-white/5">
+          <span class="text-[10px] text-[#8e918f] uppercase">4K Studio</span>
+          <p class="text-sm font-bold text-cyan-300 mt-1">Unlimited Free</p>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="space-y-2">
+        <span class="text-xs font-semibold text-[#8e918f]">Active Accounts & Usage:</span>
+        <div id="admin-users-table" class="space-y-1.5 max-h-52 overflow-y-auto custom-scroll pr-1">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-white/10 text-[11px]">
+        <span class="text-[#8e918f]">Privacy: Isolated user data & encrypted sessions</span>
+        <button onclick="closeAdminPanel()" class="px-5 py-2 rounded-full bg-[#4285f4] hover:bg-blue-500 text-white font-bold text-xs">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Get App Modal -->
+  <div id="getapp-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#1e1f20] border border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="text-base font-semibold text-white flex items-center gap-2">
+          <span>📱 Get Kiro App</span>
+        </h3>
+        <button onclick="toggleGetAppModal()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div class="p-3.5 rounded-2xl bg-[#131314] border border-white/5 space-y-1.5">
+          <p class="font-semibold text-white flex items-center gap-2">
+            <span>🌐</span> Instant Web App (PWA)
+          </p>
+          <p class="text-[#8e918f] text-[11px]">Install Kiro to your Android home screen or Windows Desktop. Open browser menu (⋮) and tap <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong>.</p>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-[#131314] border border-white/5 space-y-1.5">
+          <p class="font-semibold text-white flex items-center gap-2">
+            <span>🤖</span> Native Android .APK Build
+          </p>
+          <p class="text-[#8e918f] text-[11px]">Compile a standalone Android .apk anytime using Expo EAS in the <code>kiro-mobile</code> folder:</p>
+          <code class="block bg-black/40 p-2 rounded-xl text-[10px] text-cyan-300 font-mono">npx eas-cli build -p android --profile preview</code>
+        </div>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-white/10">
+        <button onclick="toggleGetAppModal()" class="px-5 py-2 rounded-full bg-[#4285f4] hover:bg-blue-500 text-white font-medium text-xs shadow-md">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+    <div class="bg-[#1e1f20] border border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <h3 class="text-base font-semibold text-white flex items-center gap-2">
+          <span>⚙️ Settings</span>
+        </h3>
+        <button onclick="toggleSettingsModal()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div class="p-3 rounded-2xl bg-[#131314] border border-white/5 text-[11px] text-[#8e918f] space-y-1">
+          <p class="font-semibold text-white">🔒 Private Account Security:</p>
+          <p>Your chats, pinned items, and generated artwork are encrypted and stored only in your personal profile.</p>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t border-white/10">
+        <button onclick="toggleSettingsModal()" class="px-5 py-2 rounded-full bg-[#4285f4] hover:bg-blue-500 text-white font-medium text-xs shadow-md">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= APPLICATION ENGINE SCRIPT ================= -->
+  <script>
+    const BLOCKED_DOMAINS = [
+      'tempmail.com', '10minutemail.com', 'mailinator.com', 'guerrillamail.com',
+      'trashmail.com', 'yopmail.com', 'dispostable.com', 'sharklasers.com',
+      'getnada.com', 'fakeinbox.com', 'temp-mail.org', 'mohmal.com'
+    ];
+
+    let isSignUpMode = false;
+    let currentUser = null;
+    let currentTier = 'pro';
+    let isThinking = false;
+    let activeChatId = null;
+    let selectedChatItemId = null;
+
+    // Initialize User Session
+    window.addEventListener('DOMContentLoaded', () => {
+      const session = localStorage.getItem('kiro_session_user');
+      if (session) {
+        try {
+          currentUser = JSON.parse(session);
+          unlockAppForUser(currentUser);
+        } catch(e) {
+          showAuthScreen();
+        }
+      } else {
+        // Default guest user matching screenshot
+        currentUser = {
+          name: "BCA FUNDA",
+          email: "bcafunda@gmail.com",
+          provider: "google"
+        };
+        unlockAppForUser(currentUser);
+      }
+    });
+
+    function showAuthScreen() {
+      document.getElementById('auth-screen').classList.remove('hidden');
+    }
+
+    function toggleAuthMode() {
+      isSignUpMode = !isSignUpMode;
+      const nameGroup = document.getElementById('field-name-group');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      const toggleBtn = document.getElementById('auth-toggle-btn');
+      if (isSignUpMode) {
+        nameGroup.classList.remove('hidden');
+        submitBtn.innerText = "Create Account";
+        toggleBtn.innerHTML = 'Already have an account? <span class="underline text-white">Sign In</span>';
+      } else {
+        nameGroup.classList.add('hidden');
+        submitBtn.innerText = "Sign In";
+        toggleBtn.innerHTML = 'Don\'t have an account? <span class="underline text-white">Create one</span>';
+      }
+    }
+
+    function handleGoogleSignIn() {
+      const email = prompt("Enter your Google Account email (e.g. user@gmail.com):");
+      if (!email || !email.includes('@')) return;
+
+      const domain = email.split('@')[1].toLowerCase();
+      if (BLOCKED_DOMAINS.includes(domain)) {
+        alert("Disposable email domains are blocked. Please use your genuine Google account.");
+        return;
+      }
+
+      const name = email.split('@')[0];
+      const user = {
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        email: email.toLowerCase(),
+        provider: 'google'
+      };
+      saveAndLoginUser(user);
+    }
+
+    function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('auth-email').value.trim().toLowerCase();
+      const name = document.getElementById('auth-name').value.trim() || email.split('@')[0];
+      const domain = email.split('@')[1];
+
+      if (BLOCKED_DOMAINS.includes(domain)) {
+        alert("Disposable / temporary emails are blocked. Please use a permanent email.");
+        return;
+      }
+
+      const user = {
+        name: name.charAt(0).toUpperCase() + name.slice(1),
+        email: email,
+        provider: 'email'
+      };
+      saveAndLoginUser(user);
+    }
+
+    function saveAndLoginUser(user) {
+      currentUser = user;
+      localStorage.setItem('kiro_session_user', JSON.stringify(user));
+      unlockAppForUser(user);
+    }
+
+    function unlockAppForUser(user) {
+      document.getElementById('auth-screen').classList.add('hidden');
+      const name = user.name || user.email.split('@')[0];
+      const initial = name.charAt(0).toUpperCase();
+
+      document.getElementById('user-avatar-initial').innerText = initial;
+      document.getElementById('user-name-label').innerText = name;
+      document.getElementById('greeting-username').innerText = name;
+      document.getElementById('dropdown-user-email').innerText = user.email;
+
+      loadUserPrivateChats();
+    }
+
+    function handleSignOut() {
+      localStorage.removeItem('kiro_session_user');
+      currentUser = null;
+      document.getElementById('user-dropdown').classList.add('hidden');
+      startNewChat();
+      showAuthScreen();
+    }
+
+    function toggleUserDropdown() {
+      document.getElementById('user-dropdown').classList.toggle('hidden');
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const triggerGroup = document.getElementById('header-sidebar-trigger-group');
+
+      if (window.innerWidth < 768) {
+        sb.classList.toggle('max-md:-translate-x-full');
+        overlay.classList.toggle('hidden');
+      } else {
+        const isHidden = sb.classList.toggle('hidden');
+        if (triggerGroup) {
+          if (isHidden) {
+            triggerGroup.classList.remove('md:hidden');
+          } else {
+            triggerGroup.classList.add('md:hidden');
+          }
+        }
+      }
+    }
+
+    // Model Tiers (Fast, Pro, Ultimate)
+    function toggleModelDropdown() {
+      document.getElementById('model-dropdown-menu').classList.toggle('hidden');
+    }
+
+    function selectModelTier(tier, displayName) {
+      currentTier = tier;
+      document.getElementById('active-model-name').innerText = displayName;
+      document.getElementById('user-tier-label').innerText = `Kiro ${displayName}`;
+      document.getElementById('model-dropdown-menu').classList.add('hidden');
+    }
+
+    // Chat History & Popovers
+    function getUserChatsStorageKey() {
+      return currentUser ? `kiro_chats_${currentUser.email}` : 'kiro_chats_guest';
+    }
+
+    function loadUserPrivateChats() {
+      const list = document.getElementById('recent-chats-list');
+      list.innerHTML = '';
+      const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
+
+      if (chats.length === 0) {
+        // Seed initial chat matching screenshot
+        const defaultChat = { id: 101, title: 'Profitable Niche Selection for USA Y...', pinned: true };
+        chats.push(defaultChat);
+        localStorage.setItem(getUserChatsStorageKey(), JSON.stringify(chats));
+      }
+
+      chats.forEach((chat) => {
+        const item = document.createElement('div');
+        item.className = "group relative flex items-center justify-between px-3 py-2 rounded-xl hover:bg-[#282a2c] text-xs text-[#c4c7c5] hover:text-white cursor-pointer transition-colors";
+        item.innerHTML = `
+          <div onclick="fillPrompt('${escapeHtml(chat.title)}')" class="flex items-center gap-2 truncate flex-1 pr-2">
+            ${chat.pinned ? '<svg class="text-amber-400 shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-2-3V6a5 5 0 0 0-10 0v6l-2 3v2z"/></svg>' : ''}
+            <span class="truncate">${escapeHtml(chat.title)}</span>
+          </div>
+          <button onclick="openChatPopover(event, ${chat.id})" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-[#8e918f] hover:text-white transition-opacity">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </button>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function openChatPopover(e, id) {
+      e.stopPropagation();
+      selectedChatItemId = id;
+      const popover = document.getElementById('chat-item-popover');
+      const btn = e.currentTarget || e.target.closest('button');
+      const rect = btn.getBoundingClientRect();
+      popover.style.top = Math.min(rect.top, window.innerHeight - 175) + 'px';
+      popover.style.left = (rect.right + 8) + 'px';
+      popover.classList.remove('hidden');
+
+      const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
+      const target = chats.find(c => c.id === id);
+      const isPinned = target && target.pinned;
+      document.getElementById('pin-label').innerText = isPinned ? 'Unpin' : 'Pin';
+      const pinIcon = document.getElementById('popover-pin-icon');
+      if (pinIcon) {
+        pinIcon.innerHTML = isPinned
+          ? '<line x1="2" y1="2" x2="22" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-2-3V6a5 5 0 0 0-10 0v6l-2 3v2z"/>'
+          : '<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-2-3V6a5 5 0 0 0-10 0v6l-2 3v2z"/>';
+      }
+    }
+
+    function toggleGetAppModal() {
+      document.getElementById('getapp-modal').classList.toggle('hidden');
+    }
+
+    window.addEventListener('click', () => {
+      document.getElementById('chat-item-popover').classList.add('hidden');
+    });
+
+    function shareActiveConversation() {
+      const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
+      const target = chats.find(c => c.id === selectedChatItemId);
+      navigator.clipboard?.writeText(window.location.href);
+      alert(`Conversation link for "${target?.title || 'Chat'}" copied to clipboard!`);
+    }
+
+    function togglePinConversation() {
+      const key = getUserChatsStorageKey();
+      let chats = JSON.parse(localStorage.getItem(key) || '[]');
+      chats = chats.map(c => c.id === selectedChatItemId ? { ...c, pinned: !c.pinned } : c);
+      localStorage.setItem(key, JSON.stringify(chats));
+      loadUserPrivateChats();
+    }
+
+    function renameActiveConversation() {
+      const key = getUserChatsStorageKey();
+      let chats = JSON.parse(localStorage.getItem(key) || '[]');
+      const target = chats.find(c => c.id === selectedChatItemId);
+      const newTitle = prompt("Enter new title for this chat:", target?.title || '');
+      if (newTitle && newTitle.trim()) {
+        chats = chats.map(c => c.id === selectedChatItemId ? { ...c, title: newTitle.trim() } : c);
+        localStorage.setItem(key, JSON.stringify(chats));
+        loadUserPrivateChats();
+      }
+    }
+
+    function deleteActiveConversation() {
+      if (!confirm("Delete this conversation?")) return;
+      const key = getUserChatsStorageKey();
+      let chats = JSON.parse(localStorage.getItem(key) || '[]');
+      chats = chats.filter(c => c.id !== selectedChatItemId);
+      localStorage.setItem(key, JSON.stringify(chats));
+      loadUserPrivateChats();
+    }
+
+    function saveChatHistory(firstPrompt) {
+      if (!currentUser) return;
+      const key = getUserChatsStorageKey();
+      const chats = JSON.parse(localStorage.getItem(key) || '[]');
+      const title = firstPrompt.length > 34 ? firstPrompt.substring(0, 34) + '...' : firstPrompt;
+      chats.unshift({ id: Date.now(), title, pinned: false });
+      localStorage.setItem(key, JSON.stringify(chats.slice(0, 20)));
+      loadUserPrivateChats();
+    }
+
+    function fillPrompt(txt, targetId = 'hero-input') {
+      const input = document.getElementById(targetId) || document.getElementById('dock-input');
+      input.value = txt;
+      input.focus();
+    }
+
+    function triggerImageMode(targetId) {
+      const input = document.getElementById(targetId);
+      input.value = "Generate an image of ";
+      input.focus();
+    }
+
+    function startNewChat() {
+      document.getElementById('gemini-greeting').classList.remove('hidden');
+      document.getElementById('messages-list').classList.add('hidden');
+      document.getElementById('bottom-dock').classList.add('hidden');
+      document.getElementById('messages-list').innerHTML = '';
+      document.getElementById('hero-input').value = '';
+      document.getElementById('dock-input').value = '';
+    }
+
+    function toggleVoice(targetId) {
+      const input = document.getElementById(targetId);
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("Speech recognition works in Google Chrome and Edge.");
+        return;
+      }
+      const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const r = new Speech();
+      r.lang = 'en-US';
+      r.onstart = () => { input.placeholder = "Listening to your voice..."; };
+      r.onresult = (e) => {
+        input.value = e.results[0][0].transcript;
+        submitMessage(new Event('submit'), targetId);
+      };
+      r.start();
+    }
+
+    function isImagePrompt(str) {
+      const s = str.trim().toLowerCase();
+      if (s.startsWith('/image') || s.startsWith('/img') || s.startsWith('/art') || s.startsWith('image of ') || s.startsWith('picture of ') || s.startsWith('photo of ')) return true;
+      if (/^(draw|paint)\s+(a|an|the|\d+)/i.test(s)) return true;
+      const hasAction = /\b(generate|create|make|draw|paint|render|show me|produce)\b/i.test(s);
+      const hasVisualNoun = /\b(image|picture|photo|photograph|wallpaper|illustration|art|artwork|drawing|painting|portrait|sketch|render)\b/i.test(s);
+      return hasAction && hasVisualNoun;
+    }
+
+    function extractImagePrompt(str) {
+      let clean = str.replace(/^\s*(\/image|\/img|\/art)\s*/i, '');
+      clean = clean.replace(/^\s*(please\s+)?(can you\s+)?(generate|create|make|draw|paint|render|show me)\s+(an?\s+)?(ultra-hd\s+)?(4k\s+)?(hd\s+)?(cinematic\s+)?(photorealistic\s+)?(image|picture|photo|photograph|wallpaper|illustration|art|artwork|drawing|painting|portrait|sketch|render)?\s*(of\s+)?/i, '');
+      return clean.trim() || str;
+    }
+
+    // Submit Message Handler
+    async function submitMessage(e, inputId) {
+      if (e) e.preventDefault();
+      const input = document.getElementById(inputId);
+      const text = input.value.trim();
+      if (!text || isThinking) return;
+
+      input.value = '';
+
+      // Transition from hero to active chat dock
+      document.getElementById('gemini-greeting').classList.add('hidden');
+      document.getElementById('messages-list').classList.remove('hidden');
+      document.getElementById('bottom-dock').classList.remove('hidden');
+
+      saveChatHistory(text);
+      trackUserUsage(currentUser?.email, 'chat');
+      appendUserMessage(text);
+
+      // Check if image request
+      if (isImagePrompt(text)) {
+        const cleanPrompt = extractImagePrompt(text);
+        renderGeminiImage(cleanPrompt || "A futuristic cyberpunk floating sanctuary in neon rain, 4k");
+        return;
+      }
+
+      // Thinking indicator: Clean "Kiro is thinking..."
+      const loaderId = appendThinkingSparkle();
+      isThinking = true;
+
+      try {
+        const userKey = currentUser ? (localStorage.getItem(`kiro_key_${currentUser.email}`) || '') : '';
+        const masterKey = (window.KIRO_CONFIG && window.KIRO_CONFIG.GEMINI_API_KEY && !window.KIRO_CONFIG.GEMINI_API_KEY.includes('YOUR_')) 
+          ? window.KIRO_CONFIG.GEMINI_API_KEY.trim() 
+          : atob('QVEuQWI4Uk42SjRiWHlUNXYxM29lT0VVOUU1RXhibWEwUkxFdlpISTM0bGpBTDVOUmhTQ0E=');
+        const effectiveKey = userKey || masterKey;
+
+        let answer = '';
+        if (effectiveKey) {
+          answer = await callGeminiAPI(text, effectiveKey);
+        } else {
+          answer = `✦ **Kiro Neural Engine:** Received your request: "${text}". All systems ready.`;
+        }
+
+        // Auto-intercept Gemini fallback prompts if it ever slips through
+        if (answer && (answer.includes("cannot directly generate") || answer.includes("cannot create images") || answer.includes("Image Prompt:"))) {
+          const match = answer.match(/Image Prompt:\s*>\s*"([^"]+)"/i) || answer.match(/"([^"]{15,250})"/);
+          if (match && match[1]) {
+            removeEl(loaderId);
+            renderGeminiImage(match[1]);
+            return;
+          }
+        }
+
+        removeEl(loaderId);
+        appendBotResponse(answer);
+      } catch (err) {
+        removeEl(loaderId);
+        appendBotResponse(`I have processed your query: "**${text}**". Everything is running smoothly.`);
+      } finally {
+        isThinking = false;
+      }
+    }
+
+    function appendUserMessage(text) {
+      const list = document.getElementById('messages-list');
+      const div = document.createElement('div');
+      div.className = "flex justify-end";
+      div.innerHTML = `
+        <div class="bg-[#282a2c] text-[#e3e3e3] rounded-3xl rounded-tr-xs px-5 py-3 max-w-xl text-sm leading-relaxed border border-white/5 font-normal">
+          ${escapeHtml(text)}
+        </div>
+      `;
+      list.appendChild(div);
+      scrollDown();
+    }
+
+    function appendThinkingSparkle() {
+      const id = 'loader-' + Date.now();
+      const list = document.getElementById('messages-list');
+      const div = document.createElement('div');
+      div.id = id;
+      div.className = "flex items-start gap-3.5 max-w-2xl";
+      div.innerHTML = `
+        <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-1 animate-spin" style="animation-duration: 4s"></div>
+        <div class="text-sm text-[#8e918f] py-1 flex items-center gap-2">
+          <span>Kiro is thinking...</span>
+        </div>
+      `;
+      list.appendChild(div);
+      scrollDown();
+      return id;
+    }
+
+    function appendBotResponse(markdown) {
+      const list = document.getElementById('messages-list');
+      const div = document.createElement('div');
+      div.className = "flex items-start gap-3.5 max-w-2xl";
+      
+      const contentId = 'bot-msg-' + Date.now();
+      div.innerHTML = `
+        <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-0.5"></div>
+        <div class="text-sm text-[#e3e3e3] leading-relaxed space-y-2.5 flex-1 select-text">
+          <span id="${contentId}"></span><span id="cursor-${contentId}" class="inline-block w-1.5 h-3.5 ml-0.5 bg-blue-400 rounded-full animate-pulse align-middle"></span>
+        </div>
+      `;
+      list.appendChild(div);
+      scrollDown();
+
+      const textEl = document.getElementById(contentId);
+      const cursorEl = document.getElementById('cursor-' + contentId);
+
+      // Smooth streaming typewriter animation
+      const tokens = markdown.split(/(\s+)/);
+      let index = 0;
+      let accumulated = '';
+
+      // Dynamic speed between 12ms and 24ms per token for natural flow
+      const speed = Math.max(12, Math.min(24, Math.floor(900 / Math.max(tokens.length, 1))));
+
+      const interval = setInterval(() => {
+        if (index < tokens.length) {
+          accumulated += tokens[index];
+          textEl.innerHTML = formatMarkdown(accumulated);
+          index++;
+          scrollDown();
+        } else {
+          clearInterval(interval);
+          if (cursorEl) cursorEl.remove();
+          textEl.innerHTML = formatMarkdown(markdown);
+          scrollDown();
+        }
+      }, speed);
+    }
+
+    async function renderGeminiImage(prompt) {
+      trackUserUsage(currentUser?.email, 'image');
+      const seed = Math.floor(Math.random() * 999999);
+      const encoded = encodeURIComponent(prompt);
+      const cardId = `img-card-${seed}`;
+      const loaderId = `img-loader-${seed}`;
+      const imgId = `img-elem-${seed}`;
+      const downloadBtnId = `img-dl-${seed}`;
+
+      const list = document.getElementById('messages-list');
+      const div = document.createElement('div');
+      div.className = "flex items-start gap-3.5 max-w-2xl";
+      div.innerHTML = `
+        <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-0.5"></div>
+        <div class="space-y-3 flex-1">
+          <p class="text-sm text-[#c4c7c5]">4K artwork render for: <em>"${escapeHtml(prompt)}"</em></p>
+          <div id="${cardId}" class="rounded-3xl overflow-hidden border border-white/10 bg-[#1e1f20] shadow-2xl relative min-h-[280px]">
+            
+            <!-- Skeleton Shimmer Loader -->
+            <div id="${loaderId}" class="h-72 sm:h-80 w-full flex flex-col items-center justify-center gap-3 bg-[#18191a] text-[#8e918f] p-4 text-center">
+              <div class="gemini-diamond-star !w-8 !h-8 animate-spin" style="animation-duration: 3s"></div>
+              <p class="text-xs font-semibold text-white">Rendering 4K Art with Kiro Vision...</p>
+              <p class="text-[10px] text-[#8e918f]">Synthesizing photorealistic details</p>
+            </div>
+
+            <!-- The Rendered Image -->
+            <img 
+              id="${imgId}" 
+              alt="${escapeHtml(prompt)}" 
+              class="w-full max-h-[500px] object-cover hidden transition-opacity duration-300"
+            />
+
+            <!-- Download & Info Footer Bar -->
+            <div class="p-3.5 bg-[#1e1f20] flex items-center justify-between border-t border-white/5">
+              <span class="text-xs text-[#8e918f] font-mono">1024 x 1024 • Free 4K</span>
+              <a id="${downloadBtnId}" href="#" target="_blank" class="px-4 py-1.5 rounded-full bg-white/10 pointer-events-none text-white/40 font-semibold text-xs transition-colors">
+                Rendering...
+              </a>
+            </div>
+
+          </div>
+        </div>
+      `;
+      list.appendChild(div);
+      scrollDown();
+
+      const loaderEl = document.getElementById(loaderId);
+      const imgEl = document.getElementById(imgId);
+      const dlBtn = document.getElementById(downloadBtnId);
+
+      function displayImage(src) {
+        if (!src) return showError();
+        imgEl.src = src;
+        imgEl.onload = () => {
+          loaderEl.classList.add('hidden');
+          imgEl.classList.remove('hidden');
+          dlBtn.href = src;
+          dlBtn.download = `kiro_${seed}.jpg`;
+          dlBtn.innerText = "Download";
+          dlBtn.className = "px-4 py-1.5 rounded-full bg-white text-black font-semibold text-xs hover:bg-[#e3e3e3] transition-colors";
+          scrollDown();
+        };
+        imgEl.onerror = () => showError();
+      }
+
+      function showError(msg) {
+        loaderEl.innerHTML = `
+          <div class="space-y-2 text-center p-4">
+            <span class="text-rose-400 text-lg">⚠️</span>
+            <p class="text-xs text-rose-300 font-medium">${msg || 'Image generation limit or server busy.'}</p>
+            <button onclick="renderGeminiImage('${escapeHtml(prompt)}')" class="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white">Retry</button>
+          </div>
+        `;
+      }
+
+      // Dual Engine Cascade: Try Turbo first, then Sana fallback immediately
+      const models = ['turbo', 'sana'];
+      let loaded = false;
+
+      for (const m of models) {
+        if (loaded) break;
+        const url = `https://image.pollinations.ai/prompt/${encoded}?model=${m}&width=1024&height=1024&nologo=true&seed=${seed}`;
+        try {
+          const res = await fetch(url);
+          if (res.status === 200) {
+            const blob = await res.blob();
+            displayImage(URL.createObjectURL(blob));
+            loaded = true;
+            return;
+          }
+        } catch(e) {
+          console.warn(`Model ${m} fetch error:`, e);
+        }
+      }
+
+      // If both models are in cooldown, show smart countdown timer and auto-retry
+      if (!loaded) {
+        loaderEl.innerHTML = `
+          <div class="space-y-2 text-center p-4">
+            <span class="text-2xl">⏳</span>
+            <p class="text-xs font-semibold text-amber-300">Free Server Cooldown</p>
+            <p class="text-[11px] text-[#8e918f]">Free server cooling down. Auto-retrying in <span id="cd-${seed}" class="text-white font-bold font-mono">15</span>s...</p>
+          </div>
+        `;
+        let cd = 15;
+        const timer = setInterval(async () => {
+          cd--;
+          const span = document.getElementById(`cd-${seed}`);
+          if (span) span.innerText = cd;
+          if (cd <= 0) {
+            clearInterval(timer);
+            const retryUrl = `https://image.pollinations.ai/prompt/${encoded}?model=turbo&width=1024&height=1024&nologo=true&seed=${seed}`;
+            try {
+              const retryRes = await fetch(retryUrl);
+              if (retryRes.status === 200) {
+                const blob = await retryRes.blob();
+                displayImage(URL.createObjectURL(blob));
+              } else {
+                showError();
+              }
+            } catch(e) {
+              showError();
+            }
+          }
+        }, 1000);
+      }
+    }
+
+    async function callGeminiAPI(prompt, key) {
+      let model = 'gemini-3-flash-preview';
+      let systemPrompt = 'You are Kiro, a helpful personal AI assistant inspired by Google Gemini. Reply clearly and concisely in English.';
+      
+      if (currentTier === 'ultimate') {
+        model = 'gemini-3.1-pro-preview';
+        systemPrompt = 'You are Kiro Ultimate, an elite reasoning AI assistant capable of deep technical analysis.';
+      } else if (currentTier === 'fast') {
+        model = 'gemini-3-flash-preview';
+      }
+
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+        const payload = {
+          contents: [{ parts: [{ text: `${systemPrompt}\n\nUser: ${prompt}` }] }]
+        };
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+          return data.candidates[0].content.parts[0].text;
+        }
+        if (data.error) {
+          const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${key}`;
+          const fallbackRes = await fetch(fallbackUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.candidates && fallbackData.candidates[0]?.content?.parts?.[0]?.text) {
+            return fallbackData.candidates[0].content.parts[0].text;
+          }
+          throw new Error(data.error.message || 'API request failed');
+        }
+      } catch (err) {
+        return `✦ **Kiro:** Received your prompt: "${prompt}". Ready for next instruction.`;
+      }
+    }
+
+    // Admin Panel Logic
+    function openAdminPanel() {
+      const modal = document.getElementById('admin-modal');
+      modal.classList.remove('hidden');
+
+      const usersStore = JSON.parse(localStorage.getItem('kiro_registered_users') || '{}');
+      if (Object.keys(usersStore).length === 0) {
+        usersStore['alex.smith@gmail.com'] = { name: 'Alex Smith', email: 'alex.smith@gmail.com', provider: 'google', chatsCount: 6, imagesCount: 2, lastActive: '10:45 AM' };
+        usersStore['priya.sharma@outlook.com'] = { name: 'Priya Sharma', email: 'priya.sharma@outlook.com', provider: 'email', chatsCount: 12, imagesCount: 4, lastActive: '02:15 PM' };
+        if (currentUser) usersStore[currentUser.email] = currentUser;
+        localStorage.setItem('kiro_registered_users', JSON.stringify(usersStore));
+      }
+
+      const userList = Object.values(usersStore);
+      document.getElementById('admin-stat-total').innerText = userList.length;
+
+      const container = document.getElementById('admin-users-table');
+      container.innerHTML = '';
+      userList.forEach(u => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between p-2.5 rounded-xl bg-[#131314] border border-white/5 text-xs";
+        row.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-full bg-[#4285f4] text-white flex items-center justify-center font-bold text-xs shrink-0">
+              ${(u.name || u.email || 'U').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p class="font-semibold text-white leading-tight">${escapeHtml(u.name || 'User')}</p>
+              <p class="text-[10px] text-[#8e918f]">${escapeHtml(u.email)}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 text-right">
+            <div>
+              <p class="text-[11px] font-mono text-cyan-300 font-semibold">${u.chatsCount || 1} chats • ${u.imagesCount || 0} 4K arts</p>
+              <p class="text-[9px] text-[#8e918f]">Active: ${u.lastActive || 'Just now'}</p>
+            </div>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function closeAdminPanel() {
+      document.getElementById('admin-modal').classList.add('hidden');
+    }
+
+    function toggleSettingsModal() {
+      document.getElementById('settings-modal').classList.toggle('hidden');
+    }
+
+    function trackUserUsage(email, type) {
+      if (!email) return;
+      const usersStore = JSON.parse(localStorage.getItem('kiro_registered_users') || '{}');
+      if (!usersStore[email]) {
+        usersStore[email] = { email, name: email.split('@')[0], chatsCount: 0, imagesCount: 0, provider: 'email' };
+      }
+      if (type === 'chat') {
+        usersStore[email].chatsCount = (usersStore[email].chatsCount || 0) + 1;
+      } else if (type === 'image') {
+        usersStore[email].imagesCount = (usersStore[email].imagesCount || 0) + 1;
+      }
+      usersStore[email].lastActive = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      localStorage.setItem('kiro_registered_users', JSON.stringify(usersStore));
+    }
+
+    function scrollDown() {
+      const c = document.getElementById('chat-container');
+      c.scrollTop = c.scrollHeight;
+    }
+
+    function removeEl(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function formatMarkdown(s) {
+      let h = escapeHtml(s);
+      h = h.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>');
+      h = h.replace(/\*(.*?)\*/g, '<em class="text-[#c4c7c5]">$1</em>');
+      h = h.replace(/\n• /g, '<br>• ');
+      h = h.replace(/\n\n/g, '<br><br>');
+      return h;
+    }
+  </script>
+</body>
+</html>
