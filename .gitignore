@@ -1,0 +1,12 @@
+# Environment secrets
+.env
+*.env
+kiro-mobile/.env
+kiro-web/config.js
+
+# Dependencies & Build artifacts
+node_modules/
+.expo/
+dist/
+.DS_Store
+Thumbs.db

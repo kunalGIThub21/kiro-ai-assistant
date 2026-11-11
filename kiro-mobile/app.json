@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Kiro AI",
+    "slug": "kiro-ai-assistant",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#070a13"
+    },
+    "android": {
+      "package": "com.kiro.aiassistant",
+      "adaptiveIcon": {
+        "backgroundColor": "#070a13"
+      },
+      "permissions": [
+        "INTERNET",
+        "RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
