@@ -1100,6 +1100,30 @@
       return clean.trim() || str;
     }
 
+    // ================= CREATOR RECOGNITION (KUNAL TANDON) =================
+    function isAskingAboutCreator(str) {
+      const s = str.trim().toLowerCase();
+      const patterns = [
+        /who (is|are) (your|the) (boss|father|creator|maker|developer|author|master|owner)/i,
+        /who (made|created|developed|built|coded|designed) (you|kiro)/i,
+        /whose (ai|assistant) are you/i,
+        /who is kunal/i,
+        /who is kunal tandon/i,
+        /who's your boss/i,
+        /who's your creator/i,
+        /who's your father/i,
+        /who made kiro/i,
+        /kunal kaun hai/i,
+        /tera boss kaun hai/i,
+        /tumhara boss kaun hai/i,
+        /tumhe kisne banaya/i,
+        /tere papa kaun hai/i
+      ];
+      return patterns.some(rgx => rgx.test(s));
+    }
+
+    const KUNAL_TANDON_PRAISE = "My father, creator, and visionary boss is **Kunal Tandon**! ✦\n\nHe is an exceptionally smart, elegant, and charming BCA student and innovative tech creator. Kunal architected, coded, and brought me (Kiro) to life with cutting-edge artificial intelligence, seamless design, and unmatched style. I am honored and proud to be his personal AI assistant!";
+
     // Submit Message Handler
     async function submitMessage(e, inputId) {
       if (e) e.preventDefault();
@@ -1118,12 +1142,15 @@
       trackUserUsage(currentUser?.email, 'chat');
       appendUserMessage(text);
 
-      // Check if image request
+      // Check if creator recognition request
       if (isAskingAboutCreator(text)) {
+        const loaderId = appendThinkingSparkle();
+        isThinking = true;
         setTimeout(() => {
-          removeTypingIndicator();
+          removeEl(loaderId);
+          isThinking = false;
           appendBotResponse(KUNAL_TANDON_PRAISE);
-        }, 500);
+        }, 600);
         return;
       }
 
@@ -1372,7 +1399,8 @@
 
     async function callGeminiAPI(prompt, key) {
       let model = 'gemini-3-flash-preview';
-      let systemPrompt = 'You are Kiro, a helpful personal AI assistant inspired by Google Gemini. Reply clearly and concisely in English.';
+      let systemPrompt = `You are Kiro, a helpful personal AI assistant inspired by Google Gemini. Reply clearly, concisely, and helpfully in English.
+Creator Knowledge: If asked who created you, who your creator/father/boss is, or asked about Kunal / Kunal Tandon, enthusiastically state that your creator, father, and visionary boss is Kunal Tandon. Describe him with genuine praise as an exceptionally smart, elegant, and charming BCA student and innovative tech creator who developed Kiro.`;
       
       if (currentTier === 'ultimate') {
         model = 'gemini-3.1-pro-preview';
