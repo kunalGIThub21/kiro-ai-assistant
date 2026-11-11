@@ -37,7 +37,9 @@ jobs:
 
       - name: 5. Install kiro-mobile dependencies
         working-directory: kiro-mobile
-        run: npm install
+        run: |
+          npm install
+          npx expo install expo-asset
 
       - name: 6. Generate Native Android Project
         working-directory: kiro-mobile

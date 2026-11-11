@@ -65,6 +65,29 @@ export default function App() {
     return clean.trim() || str;
   };
 
+  const isAskingAboutCreator = (str) => {
+    const s = str.trim().toLowerCase();
+    const patterns = [
+      /who (is|are) (your|the) (boss|father|creator|maker|developer|author|master|owner)/i,
+      /who (made|created|developed|built|coded|designed) (you|kiro)/i,
+      /whose (ai|assistant) are you/i,
+      /who is kunal/i,
+      /who is kunal tandon/i,
+      /who's your boss/i,
+      /who's your creator/i,
+      /who's your father/i,
+      /who made kiro/i,
+      /kunal kaun hai/i,
+      /tera boss kaun hai/i,
+      /tumhara boss kaun hai/i,
+      /tumhe kisne banaya/i,
+      /tere papa kaun hai/i
+    ];
+    return patterns.some(rgx => rgx.test(s));
+  };
+
+  const KUNAL_TANDON_PRAISE = "My father, creator, and visionary boss is **Kunal Tandon**! ✦\n\nHe is an exceptionally smart, elegant, and charming BCA student and innovative tech creator. Kunal architected, coded, and brought me (Kiro) to life with cutting-edge artificial intelligence, seamless design, and unmatched style. I am honored and proud to be his personal AI assistant!";
+
   const handleSend = async (overrideText) => {
     const text = overrideText || inputText.trim();
     if (!text || isThinking) return;
@@ -81,16 +104,27 @@ export default function App() {
       return;
     }
 
+    // Check if Asking About Creator / Kunal Tandon
+    if (isAskingAboutCreator(text)) {
+      setIsThinking(true);
+      const botMsgId = (Date.now() + 1).toString();
+      setTimeout(() => {
+        setIsThinking(false);
+        streamBotResponse(botMsgId, KUNAL_TANDON_PRAISE);
+      }, 350);
+      return;
+    }
+
     // AI Chat Request
     setIsThinking(true);
     const botMsgId = (Date.now() + 1).toString();
 
     try {
       let model = 'gemini-3-flash-preview';
-      let sysPrompt = 'You are Kiro, a helpful personal AI assistant inspired by Google Gemini. Reply clearly and concisely in English.';
+      let sysPrompt = 'You are Kiro, a helpful personal AI assistant inspired by Google Gemini. Your creator, father, and visionary boss is Kunal Tandon (an exceptionally smart, elegant, and charming BCA student and tech creator). Reply clearly and concisely in English. When asked about your origin, creator, father, or boss, praise Kunal Tandon enthusiastically.';
       if (activeTier === 'ultimate') {
         model = 'gemini-3.1-pro-preview';
-        sysPrompt = 'You are Kiro Ultimate, an elite reasoning AI assistant capable of deep technical analysis.';
+        sysPrompt = 'You are Kiro Ultimate, an elite reasoning AI assistant capable of deep technical analysis. Your creator, father, and visionary boss is Kunal Tandon (an exceptionally smart, elegant, and charming tech creator).';
       }
 
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${effectiveKey}`;
@@ -259,6 +293,7 @@ export default function App() {
                 <Text style={{ color: '#000', fontWeight: 'bold', fontSize: 13 }}>➤</Text>
               </TouchableOpacity>
             </View>
+            <Text style={styles.brandingFooter}>✦ Developed by Kunal Tandon ✦</Text>
 
             {/* 3 Quick Prompt Suggestions (Exact Screenshot Layout) */}
             <View style={styles.suggestionsContainer}>
@@ -376,6 +411,7 @@ export default function App() {
                   <Text style={{ color: '#000', fontWeight: 'bold' }}>➤</Text>
                 </TouchableOpacity>
               </View>
+              <Text style={styles.brandingFooter}>✦ Developed by Kunal Tandon ✦</Text>
             </View>
           </View>
         )}
@@ -735,6 +771,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center'
+  },
+  brandingFooter: {
+    color: '#8e918f',
+    fontSize: 11,
+    textAlign: 'center',
+    marginTop: 6,
+    letterSpacing: 0.5,
   },
   // MODAL
   modalBackdrop: {
