@@ -41,7 +41,10 @@ jobs:
 
       - name: 🔨 Compile Android Debug APK
         working-directory: kiro-mobile/android
-        run: ./gradlew assembleDebug --no-daemon
+        run: |
+          chmod +x gradlew
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: 🚀 Upload APK Artifact
         uses: actions/upload-artifact@v4
