@@ -43,20 +43,33 @@ jobs:
         working-directory: kiro-mobile
         run: npx expo prebuild --platform android --clean
 
-      - name: 7. Build Android Debug APK via Gradle
+      - name: 6.5. Patch Native Android Configuration for Standalone Bundling
+        working-directory: kiro-mobile
+        run: python scripts/patch-android-build.py
+
+      - name: 7. Build Standalone Android APK via Gradle
         working-directory: kiro-mobile/android
         run: |
           chmod +x gradlew
           echo "sdk.dir=$ANDROID_HOME" > local.properties
           echo "kotlinVersion=1.9.25" >> gradle.properties
           echo "android.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
-          ./gradlew assembleDebug --no-daemon -PkotlinVersion=1.9.25
+          echo "android.enableProguardInReleaseBuilds=false" >> gradle.properties
+          ./gradlew assembleRelease --no-daemon -PkotlinVersion=1.9.25 || ./gradlew assembleDebug --no-daemon -PkotlinVersion=1.9.25
 
       - name: 8. Find and Stage APK
         run: |
           mkdir -p apk_output
-          find . -name "*.apk" -exec cp {} apk_output/kiro-ai-assistant.apk \;
-          ls -lh apk_output/
+          RELEASE_APK=$(find kiro-mobile/android/app/build/outputs/apk/release -name "*.apk" 2>/dev/null | head -n 1)
+          if [ -n "$RELEASE_APK" ] && [ -f "$RELEASE_APK" ]; then
+            echo "Staging release APK from: $RELEASE_APK"
+            cp "$RELEASE_APK" apk_output/kiro-ai-assistant.apk
+          else
+            DEBUG_APK=$(find kiro-mobile/android/app/build/outputs/apk -name "*.apk" 2>/dev/null | head -n 1)
+            echo "Staging fallback APK from: $DEBUG_APK"
+            cp "$DEBUG_APK" apk_output/kiro-ai-assistant.apk
+          fi
+          ls -lh apk_output/kiro-ai-assistant.apk
 
       - name: 9. Upload Built APK Artifact
         uses: actions/upload-artifact@v4
@@ -70,7 +83,7 @@ jobs:
         with:
           tag_name: v1.0.0-apk-release-${{ github.run_number }}
           name: "Kiro AI Android App v1.0.${{ github.run_number }} (.apk)"
-          body: "Direct standalone Android APK build of Kiro AI Assistant. Download and install on your phone."
+          body: "Direct standalone Android APK build of Kiro AI Assistant (offline bundled JS, no Metro required). Download and install on your phone."
           files: apk_output/kiro-ai-assistant.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
