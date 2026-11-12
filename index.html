@@ -358,10 +358,14 @@
           <div class="gemini-diamond-star !w-6 !h-6"></div>
           KIVO Logo Concepts Showcase
         </h3>
-        <p class="text-xs text-[#8e918f]">4 Distinct Brand Concepts for Kunal Tandon's KIVO AI Assistant</p>
+        <p class="text-xs text-[#8e918f]">Exclusive Brand Concepts for Kunal Tandon's KIVO AI Assistant</p>
+      </div>
+      <div class="flex items-center justify-center gap-2 pt-1 pb-1">
+        <button type="button" onclick="switchLogoTab(2)" id="logo-tab-btn-2" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm transition-all">✨ Batch 2: Fluid & Ribbon (07-12)</button>
+        <button type="button" onclick="switchLogoTab(1)" id="logo-tab-btn-1" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/5 text-gray-400 hover:text-white border border-white/10 transition-all">Batch 1: Core Marks (01-06)</button>
       </div>
       <div class="overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
-        <img src="kivo-logo-options.jpg" alt="KIVO Logo Concepts" class="w-full h-auto object-cover max-h-[60vh] mx-auto" />
+        <img id="logo-showcase-img" src="kivo-logo-batch2.jpg" alt="KIVO Logo Concepts" class="w-full h-auto object-cover max-h-[60vh] mx-auto" />
       </div>
       <p class="text-[11px] text-[#c4c7c5]">
         Currently active in-app emblem: <strong class="text-cyan-400">Cyber-Shield & 3D 'K' Core</strong>. You can choose Option 1, 2, 3, or 4 anytime!
@@ -2475,6 +2479,22 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
     function openLogoModal() {
       const m = document.getElementById('kivo-logo-modal');
       if (m) m.classList.remove('hidden');
+    }
+
+    
+    function switchLogoTab(tab) {
+      const img = document.getElementById('logo-showcase-img');
+      const btn1 = document.getElementById('logo-tab-btn-1');
+      const btn2 = document.getElementById('logo-tab-btn-2');
+      if (tab === 2) {
+        if (img) img.src = 'kivo-logo-batch2.jpg';
+        if (btn2) { btn2.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm transition-all'; }
+        if (btn1) { btn1.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/5 text-gray-400 hover:text-white border border-white/10 transition-all'; }
+      } else {
+        if (img) img.src = 'kivo-logo-options.jpg';
+        if (btn1) { btn1.className = 'px-3.5 py-1.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm transition-all'; }
+        if (btn2) { btn2.className = 'px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/5 text-gray-400 hover:text-white border border-white/10 transition-all'; }
+      }
     }
 
     function closeLogoModal() {
