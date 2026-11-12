@@ -416,10 +416,7 @@
       </div>
 
       <!-- New Chat Button (Pill) -->
-              <button onclick="exportChatHistory()" title="Export Chat as Markdown" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </button>
-        <button onclick="startNewChat()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#131314] hover:bg-[#282a2c] text-[#e3e3e3] text-sm font-medium transition-all shadow-sm border border-white/5 group">
+              <button onclick="startNewChat()" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-full bg-[#131314] hover:bg-[#282a2c] text-[#e3e3e3] text-sm font-medium transition-all shadow-sm border border-white/5 group">
         <svg class="text-[#c4c7c5] group-hover:text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         <span>New chat</span>
       </button>
@@ -513,9 +510,6 @@
 
       <!-- Top Right Actions -->
       <div class="flex items-center gap-2">
-        <button onclick="exportChatHistory()" title="Export Chat as Markdown" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </button>
         <button onclick="startNewChat()" title="New Chat" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </button>
@@ -947,7 +941,8 @@
     let currentTypewriterTimer = null;
     let activeChatId = null;
     let selectedChatItemId = null;
-
+    let currentAttachedImage = null;
+    const KIVO_CHATS_INDEX_KEY = 'kivo_active_threads_master';
     // Initialize User Session & KIVO Core Systems
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
@@ -1260,26 +1255,23 @@
     // Chat History & Popovers
     
     function getUserChatsStorageKey() {
-      if (currentUser && currentUser.provider === 'google' && currentUser.email) {
-        return `kivo_chats_${currentUser.email.toLowerCase()}`;
-      }
-      if (currentUser && currentUser.name) {
-        const cleanName = currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
-        return `kivo_chats_user_${cleanName}`;
-      }
-      return 'kivo_user_conversations_list';
+      return KIVO_CHATS_INDEX_KEY;
     }
 
-    // Auto-migrate any past chats from legacy keys so no chat is ever lost
+    // Auto-migrate all historical chats into one permanent master index
     function migrateLegacyChats() {
-      const activeKey = getUserChatsStorageKey();
-      let activeChats = JSON.parse(localStorage.getItem(activeKey) || '[]');
+      const masterKey = KIVO_CHATS_INDEX_KEY;
+      let activeChats = [];
+      try {
+        activeChats = JSON.parse(localStorage.getItem(masterKey) || '[]');
+      } catch(e) { activeChats = []; }
+      if (!Array.isArray(activeChats)) activeChats = [];
       const seenIds = new Set(activeChats.map(c => String(c.id)));
 
-      // Search all localStorage keys for any chats
+      // Search all localStorage keys for any chats from previous versions
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && k !== activeKey && (k.startsWith('kivo_chats_') || k.startsWith('kiro_chats_') || k === 'kivo_chats_guest' || k === 'kiro_chats_guest')) {
+        if (k && k !== masterKey && (k.startsWith('kivo_chats_') || k.startsWith('kiro_chats_') || k === 'kivo_user_conversations_list' || k === 'kiro_user_conversations_list' || k === 'kivo_chats_guest' || k === 'kiro_chats_guest')) {
           try {
             const oldList = JSON.parse(localStorage.getItem(k) || '[]');
             if (Array.isArray(oldList)) {
@@ -1293,22 +1285,46 @@
           } catch(e) {}
         }
       }
-      // Sort pinned first, then by date
+
+      // Ensure every chat has a persisted message pair so history is never empty
+      activeChats.forEach(c => {
+        const msgKey = 'kivo_msgs_' + c.id;
+        let existingMsgs = null;
+        try {
+          existingMsgs = JSON.parse(localStorage.getItem(msgKey) || 'null');
+        } catch(e) { existingMsgs = null; }
+
+        if (!existingMsgs || !Array.isArray(existingMsgs) || existingMsgs.length === 0) {
+          const defaultMsgs = [
+            { sender: 'user', text: c.title, time: c.createdAt || Date.now() },
+            { sender: 'bot', text: `✦ **KIVO Neural Engine:** Ready to assist with: "**${escapeHtml(c.title)}**". What would you like to explore?`, time: (c.createdAt || Date.now()) + 400 }
+          ];
+          localStorage.setItem(msgKey, JSON.stringify(defaultMsgs));
+        }
+      });
+
+      // Sort pinned first, then by date descending
       activeChats.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.createdAt || b.id || 0) - (a.createdAt || a.id || 0));
-      localStorage.setItem(activeKey, JSON.stringify(activeChats.slice(0, 50)));
+      localStorage.setItem(masterKey, JSON.stringify(activeChats.slice(0, 50)));
     }
 
     function saveChatHistory(firstPrompt) {
       if (!activeChatId) {
         activeChatId = 'chat_' + Date.now();
       }
-      const key = getUserChatsStorageKey();
-      const chats = JSON.parse(localStorage.getItem(key) || '[]');
-      const title = firstPrompt.length > 34 ? firstPrompt.substring(0, 34) + '...' : firstPrompt;
+      const masterKey = getUserChatsStorageKey();
+      let chats = [];
+      try {
+        chats = JSON.parse(localStorage.getItem(masterKey) || '[]');
+      } catch(e) { chats = []; }
+      if (!Array.isArray(chats)) chats = [];
+
+      const rawTitle = (firstPrompt || 'Conversation').trim();
+      const title = rawTitle.length > 34 ? rawTitle.substring(0, 34) + '...' : rawTitle;
       const existing = chats.find(c => String(c.id) === String(activeChatId));
       if (!existing) {
         chats.unshift({ id: activeChatId, title, pinned: false, createdAt: Date.now() });
-        localStorage.setItem(key, JSON.stringify(chats.slice(0, 50)));
+        localStorage.setItem(masterKey, JSON.stringify(chats.slice(0, 50)));
       }
       loadUserPrivateChats();
     }
@@ -1334,45 +1350,45 @@
       activeChatId = String(id);
       loadUserPrivateChats();
 
-      document.getElementById('gemini-greeting').classList.add('hidden');
-      document.getElementById('messages-list').classList.remove('hidden');
-      document.getElementById('bottom-dock').classList.remove('hidden');
+      const greetingEl = document.getElementById('gemini-greeting');
+      const messagesListEl = document.getElementById('messages-list');
+      const bottomDockEl = document.getElementById('bottom-dock');
 
-      const list = document.getElementById('messages-list');
-      list.innerHTML = '';
+      if (greetingEl) greetingEl.classList.add('hidden');
+      if (messagesListEl) {
+        messagesListEl.classList.remove('hidden');
+        messagesListEl.innerHTML = '';
+      }
+      if (bottomDockEl) bottomDockEl.classList.remove('hidden');
 
       const key = 'kivo_msgs_' + id;
-      const msgs = JSON.parse(localStorage.getItem(key) || '[]');
+      let msgs = [];
+      try {
+        msgs = JSON.parse(localStorage.getItem(key) || '[]');
+      } catch(e) { msgs = []; }
 
-      if (msgs.length === 0) {
+      if (!msgs || msgs.length === 0) {
         const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
         const target = chats.find(c => String(c.id) === String(id));
         const title = target ? target.title : 'Conversation';
-        // Render prompt and response so past conversations never appear blank
-        appendUserMessage(title, null, false);
-        appendBotResponse(`✦ **KIVO Neural Engine:** Ready to continue our session on: "**${escapeHtml(title)}**". How can I assist you further?`, false, false);
-      } else {
-        msgs.forEach(msg => {
-          if (msg.sender === 'user') {
-            appendUserMessage(msg.text, msg.image, true);
-          } else if (msg.sender === 'bot') {
-            if (msg.isImage) {
-              renderSavedImageCard(msg.imageUrl, msg.prompt);
-            } else {
-              renderSavedBotMessage(msg.text, msg.isError);
-            }
-          }
-        });
-
-        // Ensure bot reply is always present even if legacy chat had only user prompt
-        const hasBot = msgs.some(m => m.sender === 'bot');
-        if (!hasBot && msgs.length > 0) {
-          const lastUser = msgs[msgs.length - 1];
-          const query = lastUser ? lastUser.text : '';
-          const synthesized = `✦ **KIVO Neural Engine:** This conversation was recorded for: "**${escapeHtml(query)}**". All systems ready. What would you like to ask next?`;
-          appendBotResponse(synthesized, false, false);
-        }
+        msgs = [
+          { sender: 'user', text: title, time: Date.now() },
+          { sender: 'bot', text: `✦ **KIVO Neural Engine:** Ready to assist with: "**${escapeHtml(title)}**". What would you like to ask next?`, time: Date.now() }
+        ];
+        localStorage.setItem(key, JSON.stringify(msgs));
       }
+
+      msgs.forEach(msg => {
+        if (msg.sender === 'user') {
+          appendUserMessage(msg.text, msg.image, true);
+        } else if (msg.sender === 'bot') {
+          if (msg.isImage) {
+            renderSavedImageCard(msg.imageUrl, msg.prompt);
+          } else {
+            renderSavedBotMessage(msg.text, msg.isError);
+          }
+        }
+      });
 
       scrollDownSmooth();
 
@@ -1498,36 +1514,36 @@
     }
 
     function togglePinConversation() {
-      const key = getUserChatsStorageKey();
-      let chats = JSON.parse(localStorage.getItem(key) || '[]');
+      const masterKey = getUserChatsStorageKey();
+      let chats = JSON.parse(localStorage.getItem(masterKey) || '[]');
       const target = chats.find(c => String(c.id) === String(selectedChatItemId));
       if (target) {
         target.pinned = !target.pinned;
         chats.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
-        localStorage.setItem(key, JSON.stringify(chats));
+        localStorage.setItem(masterKey, JSON.stringify(chats));
         loadUserPrivateChats();
       }
     }
 
     function renameActiveConversation() {
-      const key = getUserChatsStorageKey();
-      let chats = JSON.parse(localStorage.getItem(key) || '[]');
+      const masterKey = getUserChatsStorageKey();
+      let chats = JSON.parse(localStorage.getItem(masterKey) || '[]');
       const target = chats.find(c => String(c.id) === String(selectedChatItemId));
       if (!target) return;
       const newTitle = prompt("Rename conversation:", target.title);
       if (newTitle && newTitle.trim()) {
         target.title = newTitle.trim();
-        localStorage.setItem(key, JSON.stringify(chats));
+        localStorage.setItem(masterKey, JSON.stringify(chats));
         loadUserPrivateChats();
       }
     }
 
     function deleteActiveConversation() {
       if (!confirm("Delete this conversation?")) return;
-      const key = getUserChatsStorageKey();
-      let chats = JSON.parse(localStorage.getItem(key) || '[]');
+      const masterKey = getUserChatsStorageKey();
+      let chats = JSON.parse(localStorage.getItem(masterKey) || '[]');
       chats = chats.filter(c => String(c.id) !== String(selectedChatItemId));
-      localStorage.setItem(key, JSON.stringify(chats));
+      localStorage.setItem(masterKey, JSON.stringify(chats));
       localStorage.removeItem('kivo_msgs_' + selectedChatItemId);
       if (String(activeChatId) === String(selectedChatItemId)) {
         startNewChat();
@@ -1537,14 +1553,26 @@
     }
 
     function startNewChat() {
+      if (currentTypewriterTimer) {
+        clearInterval(currentTypewriterTimer);
+        currentTypewriterTimer = null;
+      }
       activeChatId = null;
-      document.getElementById('gemini-greeting').classList.remove('hidden');
-      document.getElementById('messages-list').classList.add('hidden');
-      document.getElementById('bottom-dock').classList.add('hidden');
-      document.getElementById('messages-list').innerHTML = '';
-      document.getElementById('hero-input').value = '';
-      document.getElementById('dock-input').value = '';
+      const greetingEl = document.getElementById('gemini-greeting');
+      const messagesListEl = document.getElementById('messages-list');
+      const bottomDockEl = document.getElementById('bottom-dock');
+      if (greetingEl) greetingEl.classList.remove('hidden');
+      if (messagesListEl) {
+        messagesListEl.classList.add('hidden');
+        messagesListEl.innerHTML = '';
+      }
+      if (bottomDockEl) bottomDockEl.classList.add('hidden');
+      const heroInp = document.getElementById('hero-input');
+      const dockInp = document.getElementById('dock-input');
+      if (heroInp) heroInp.value = '';
+      if (dockInp) dockInp.value = '';
       loadUserPrivateChats();
+      if (heroInp) heroInp.focus();
     }
 
     // ================= INLINE ANIMATED SEARCH / FILTER BAR =================
@@ -1700,24 +1728,33 @@
     async function submitMessage(e, inputId) {
       if (e) e.preventDefault();
       const input = document.getElementById(inputId);
+      if (!input) return;
       const text = input.value.trim();
       if (!text || isThinking) return;
 
       input.value = '';
+
+      if (currentTypewriterTimer) {
+        clearInterval(currentTypewriterTimer);
+        currentTypewriterTimer = null;
+      }
 
       // Transition from hero to active chat dock
       document.getElementById('gemini-greeting').classList.add('hidden');
       document.getElementById('messages-list').classList.remove('hidden');
       document.getElementById('bottom-dock').classList.remove('hidden');
 
-      // Ensure active conversation ID exists
-      if (!activeChatId) {
+      // If sent from Welcome screen (hero-input) OR if activeChatId is null, ALWAYS create a separate new conversation!
+      if (inputId === 'hero-input' || !activeChatId) {
         activeChatId = 'chat_' + Date.now();
+        document.getElementById('messages-list').innerHTML = '';
       }
       saveChatHistory(text);
 
       if (typeof trackUserUsage === 'function') {
-        trackUserUsage(currentUser?.email, 'chat');
+        try {
+          trackUserUsage(currentUser?.email, 'chat');
+        } catch(e) {}
       }
 
       const attachedImgCopy = currentAttachedImage ? { ...currentAttachedImage } : null;
@@ -1868,7 +1905,7 @@
       let index = 0;
       let accumulated = '';
       const chunkSize = Math.max(3, Math.ceil(tokens.length / 28)); // Fast chunks for instant feel
-      const interval = setInterval(() => {
+      currentTypewriterTimer = setInterval(() => {
         if (index < tokens.length) {
           for (let step = 0; step < chunkSize && index < tokens.length; step++) {
             accumulated += tokens[index];
@@ -1877,7 +1914,8 @@
           textEl.innerHTML = formatMarkdown(accumulated);
           scrollDown();
         } else {
-          clearInterval(interval);
+          clearInterval(currentTypewriterTimer);
+          currentTypewriterTimer = null;
           if (cursorEl) cursorEl.remove();
           textEl.innerHTML = formatMarkdown(markdown);
           const actEl = document.getElementById('actions-' + contentId);
@@ -2279,8 +2317,9 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       }, 1900);
     });
 
-  </script>
-<script>
+  
+    // Merged script continuation
+
     
     
     
@@ -2293,9 +2332,6 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       { id: '3d-pixar', label: '3D Pixar' },
       { id: 'cyberpunk', label: 'Cyberpunk' }
     ];
-
-    let activeImageRatio = localStorage.getItem('kivo_image_ratio') || '1:1';
-    let activeImageStyle = localStorage.getItem('kivo_image_style') || 'natural';
 
     function updateImageControlsUI() {
       // Ratio buttons
@@ -2331,9 +2367,6 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
     }
 
     // ================= AI MODES (HINGLISH & CODING) =================
-    let isHinglishActive = localStorage.getItem('kivo_hinglish_mode') === 'true';
-    let isCodingActive = localStorage.getItem('kivo_coding_mode') === 'true';
-
     function updateModesUI() {
       // Hinglish status
       const heroHStatus = document.getElementById('hero-hinglish-status');
@@ -2521,7 +2554,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
 
 
     // ================= IMAGE UPLOAD & VISION LOGIC =================
-    let currentAttachedImage = null; // { data: base64, mimeType, name, dataUrl }
+    // currentAttachedImage declared at top
 
     function handleImageSelect(event, source) {
       const file = event.target.files?.[0];
@@ -2758,8 +2791,6 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
     }
 
     // ================= 3D ANIMATED BACKGROUND (THREE.JS + FALLBACK) =================
-    let kivoUpdateParticleColors = null;
-
     function initKivo3DBackground() {
       const canvas = document.getElementById('kivo-3d-bg');
       if (!canvas) return;
