@@ -427,8 +427,18 @@
           </button>
           <button type="button" id="hero-coding-btn" onclick="toggleCodingMode()" title="Toggle Coding Specialist Mode" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all shadow-sm">
             <span class="text-sm">💻</span>
-            <span>Coding Mode:</span>
+            <span>Coding:</span>
             <span id="hero-coding-status" class="font-bold text-gray-400">OFF</span>
+          </button>
+          <button type="button" id="hero-ratio-btn" onclick="cycleImageRatio()" title="Cycle Image Aspect Ratio (1:1 / 16:9 / 9:16)" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all shadow-sm">
+            <span class="text-sm">📐</span>
+            <span>Ratio:</span>
+            <span id="hero-ratio-status" class="font-bold text-amber-400">1:1</span>
+          </button>
+          <button type="button" id="hero-style-btn" onclick="cycleImageStyle()" title="Cycle Art Style (Natural / Photoreal / Anime / 3D Pixar / Cyberpunk)" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all shadow-sm">
+            <span class="text-sm">🎨</span>
+            <span>Style:</span>
+            <span id="hero-style-status" class="font-bold text-cyan-400">Natural</span>
           </button>
         </div>
 
@@ -439,6 +449,12 @@
           </button>
           <button type="button" onclick="fillPrompt('Generate an ultra-HD 4K wallpaper of a futuristic cyber city in neon rain', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs hover:border-purple-500/50 hover:text-white hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
             <span>🎨</span> 4K Cyber City
+          </button>
+          <button type="button" onclick="fillPrompt('A gorgeous anime girl with sparkling turquoise eyes standing in cherry blossom rain, Makoto Shinkai style', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs hover:border-pink-500/50 hover:text-white hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
+            <span>⛩️</span> Anime Portrait
+          </button>
+          <button type="button" onclick="fillPrompt('An adorable baby red panda wearing a tiny astronaut suit exploring mars, cute 3D Pixar character render', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs hover:border-amber-500/50 hover:text-white hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
+            <span>🧸</span> 3D Pixar Cute
           </button>
           <button type="button" onclick="fillPrompt('Write a clean Python script using asyncio to scrape web data and save to JSON', 'hero-input')" class="whitespace-nowrap px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-gray-300 text-xs hover:border-blue-500/50 hover:text-white hover:scale-105 transition-all flex items-center gap-1.5 shrink-0">
             <span>💻</span> Python Script
@@ -544,6 +560,14 @@
           <span>💻</span>
           <span>Coding:</span>
           <span id="dock-coding-status" class="font-bold text-gray-400">OFF</span>
+        </button>
+        <button type="button" id="dock-ratio-btn" onclick="cycleImageRatio()" title="Cycle Aspect Ratio" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all shadow-sm">
+          <span>📐</span>
+          <span id="dock-ratio-status" class="font-bold text-amber-400">1:1</span>
+        </button>
+        <button type="button" id="dock-style-btn" onclick="cycleImageStyle()" title="Cycle Art Style" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all shadow-sm">
+          <span>🎨</span>
+          <span id="dock-style-status" class="font-bold text-cyan-400">Natural</span>
         </button>
       </div>
       <p class="text-[11px] text-[#8e918f] text-center mt-2 font-normal">
@@ -1335,7 +1359,32 @@
     async function renderGeminiImage(prompt) {
       trackUserUsage(currentUser?.email, 'image');
       const seed = Math.floor(Math.random() * 999999);
-      const encoded = encodeURIComponent(prompt);
+
+      // 1. Calculate Dynamic Aspect Ratio Dimensions
+      let width = 1024;
+      let height = 1024;
+      if (typeof activeImageRatio !== 'undefined') {
+        if (activeImageRatio === '16:9') { width = 1280; height = 720; }
+        else if (activeImageRatio === '9:16') { width = 720; height = 1280; }
+      }
+
+      // 2. Apply Smart Art Style Enhancer
+      let enhancedPrompt = prompt;
+      if (typeof activeImageStyle !== 'undefined') {
+        if (activeImageStyle === 'photoreal') {
+          enhancedPrompt = `${prompt}, 8k resolution, ultra-detailed photorealistic portrait, masterpiece, sharp focus, professional photography, studio lighting, highly detailed`;
+        } else if (activeImageStyle === 'anime') {
+          enhancedPrompt = `${prompt}, masterpiece anime artwork, Makoto Shinkai style, Studio Ghibli aesthetic, vibrant anime colors, crisp line art, 8k`;
+        } else if (activeImageStyle === '3d-pixar') {
+          enhancedPrompt = `${prompt}, adorable 3D animated character render, Pixar Disney animation style, octane render, soft subsurface scattering, vibrant lighting`;
+        } else if (activeImageStyle === 'cyberpunk') {
+          enhancedPrompt = `${prompt}, cyberpunk aesthetic, glowing neon lights, futuristic city reflections, atmospheric moody lighting, octane render, 8k`;
+        }
+      }
+
+      // 3. Smart Negative Prompts (Automatic quality booster without user effort)
+      const negativeFilter = "ugly,deformed,bad anatomy,deformed fingers,extra limbs,blurry,low quality,watermark,signature,jpeg artifacts";
+      const encoded = encodeURIComponent(enhancedPrompt);
       const cardId = `img-card-${seed}`;
       const loaderId = `img-loader-${seed}`;
       const imgId = `img-elem-${seed}`;
@@ -1366,7 +1415,7 @@
 
             <!-- Download & Info Footer Bar -->
             <div class="p-3.5 bg-[#1e1f20] flex items-center justify-between border-t border-white/5">
-              <span class="text-xs text-[#8e918f] font-mono">1024 x 1024 • Free 4K</span>
+              <span class="text-xs text-[#8e918f] font-mono">${width} x ${height} • ${typeof activeImageRatio !== "undefined" ? activeImageRatio : "1:1"} • 4K Engine</span>
               <a id="${downloadBtnId}" href="#" target="_blank" class="px-4 py-1.5 rounded-full bg-white/10 pointer-events-none text-white/40 font-semibold text-xs transition-colors">
                 Rendering...
               </a>
@@ -1413,7 +1462,7 @@
 
       for (const m of models) {
         if (loaded) break;
-        const url = `https://image.pollinations.ai/prompt/${encoded}?model=${m}&width=1024&height=1024&nologo=true&seed=${seed}`;
+        const url = `https://image.pollinations.ai/prompt/${encoded}?model=${m}&width=${width}&height=${height}&nologo=true&seed=${seed}&negative=${encodeURIComponent(negativeFilter)}`;
         try {
           const res = await fetch(url);
           if (res.status === 200) {
@@ -1718,6 +1767,53 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
 <script>
     
     
+    
+    // ================= IMAGE RATIOS & STYLE PRESETS =================
+    const RATIO_OPTIONS = ['1:1', '16:9', '9:16'];
+    const STYLE_OPTIONS = [
+      { id: 'natural', label: 'Natural' },
+      { id: 'photoreal', label: 'Photoreal' },
+      { id: 'anime', label: 'Anime' },
+      { id: '3d-pixar', label: '3D Pixar' },
+      { id: 'cyberpunk', label: 'Cyberpunk' }
+    ];
+
+    let activeImageRatio = localStorage.getItem('kiro_image_ratio') || '1:1';
+    let activeImageStyle = localStorage.getItem('kiro_image_style') || 'natural';
+
+    function updateImageControlsUI() {
+      // Ratio buttons
+      const heroRStatus = document.getElementById('hero-ratio-status');
+      const dockRStatus = document.getElementById('dock-ratio-status');
+      [heroRStatus, dockRStatus].forEach(el => {
+        if (el) el.innerText = activeImageRatio;
+      });
+
+      // Style buttons
+      const heroSStatus = document.getElementById('hero-style-status');
+      const dockSStatus = document.getElementById('dock-style-status');
+      const currentStyleObj = STYLE_OPTIONS.find(s => s.id === activeImageStyle) || STYLE_OPTIONS[0];
+      [heroSStatus, dockSStatus].forEach(el => {
+        if (el) el.innerText = currentStyleObj.label;
+      });
+    }
+
+    function cycleImageRatio() {
+      const idx = RATIO_OPTIONS.indexOf(activeImageRatio);
+      const nextIdx = (idx + 1) % RATIO_OPTIONS.length;
+      activeImageRatio = RATIO_OPTIONS[nextIdx];
+      localStorage.setItem('kiro_image_ratio', activeImageRatio);
+      updateImageControlsUI();
+    }
+
+    function cycleImageStyle() {
+      const idx = STYLE_OPTIONS.findIndex(s => s.id === activeImageStyle);
+      const nextIdx = (idx + 1) % STYLE_OPTIONS.length;
+      activeImageStyle = STYLE_OPTIONS[nextIdx].id;
+      localStorage.setItem('kiro_image_style', activeImageStyle);
+      updateImageControlsUI();
+    }
+
     // ================= AI MODES (HINGLISH & CODING) =================
     let isHinglishActive = localStorage.getItem('kiro_hinglish_mode') === 'true';
     let isCodingActive = localStorage.getItem('kiro_coding_mode') === 'true';
