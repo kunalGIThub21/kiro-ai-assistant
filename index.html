@@ -713,6 +713,11 @@
       </div>
       <div class="glass-prompt-card p-2 sm:p-2.5 focus-within:border-white/25 transition-all shadow-xl">
                 <form onsubmit="submitMessage(event, 'dock-input')" class="flex items-center gap-2">
+          <!-- Instant New Chat Button in Dock -->
+          <button type="button" onclick="startNewChat()" title="Start New Conversation" class="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white font-medium flex items-center gap-1 transition-all shrink-0 border border-white/10 shadow-sm group">
+            <svg class="group-hover:rotate-90 transition-transform text-cyan-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span class="hidden sm:inline">New</span>
+          </button>
           
           <!-- Dock Image Attach Button -->
           <input type="file" id="dock-file-input" accept="image/*" class="hidden" onchange="handleImageSelect(event, 'dock')" />
@@ -939,6 +944,7 @@
     let currentUser = null;
     let currentTier = 'pro';
     let isThinking = false;
+    let currentTypewriterTimer = null;
     let activeChatId = null;
     let selectedChatItemId = null;
 
@@ -946,6 +952,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
       initKivo3DBackground();
+      migrateLegacyChats();
 
       const session = localStorage.getItem('kivo_session_user');
       if (session) {
@@ -1252,6 +1259,45 @@
 
     // Chat History & Popovers
     
+    function getUserChatsStorageKey() {
+      if (currentUser && currentUser.provider === 'google' && currentUser.email) {
+        return `kivo_chats_${currentUser.email.toLowerCase()}`;
+      }
+      if (currentUser && currentUser.name) {
+        const cleanName = currentUser.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+        return `kivo_chats_user_${cleanName}`;
+      }
+      return 'kivo_user_conversations_list';
+    }
+
+    // Auto-migrate any past chats from legacy keys so no chat is ever lost
+    function migrateLegacyChats() {
+      const activeKey = getUserChatsStorageKey();
+      let activeChats = JSON.parse(localStorage.getItem(activeKey) || '[]');
+      const seenIds = new Set(activeChats.map(c => String(c.id)));
+
+      // Search all localStorage keys for any chats
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k !== activeKey && (k.startsWith('kivo_chats_') || k.startsWith('kiro_chats_') || k === 'kivo_chats_guest' || k === 'kiro_chats_guest')) {
+          try {
+            const oldList = JSON.parse(localStorage.getItem(k) || '[]');
+            if (Array.isArray(oldList)) {
+              oldList.forEach(c => {
+                if (c && c.id && !seenIds.has(String(c.id))) {
+                  seenIds.add(String(c.id));
+                  activeChats.push(c);
+                }
+              });
+            }
+          } catch(e) {}
+        }
+      }
+      // Sort pinned first, then by date
+      activeChats.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (b.createdAt || b.id || 0) - (a.createdAt || a.id || 0));
+      localStorage.setItem(activeKey, JSON.stringify(activeChats.slice(0, 50)));
+    }
+
     function saveChatHistory(firstPrompt) {
       if (!activeChatId) {
         activeChatId = 'chat_' + Date.now();
@@ -1262,13 +1308,9 @@
       const existing = chats.find(c => String(c.id) === String(activeChatId));
       if (!existing) {
         chats.unshift({ id: activeChatId, title, pinned: false, createdAt: Date.now() });
-        localStorage.setItem(key, JSON.stringify(chats.slice(0, 40)));
+        localStorage.setItem(key, JSON.stringify(chats.slice(0, 50)));
       }
       loadUserPrivateChats();
-    }
-
-    function getUserChatsStorageKey() {
-      return currentUser ? `kivo_chats_${currentUser.email}` : 'kivo_chats_guest';
     }
 
     function saveMessageToActiveChat(msgObj) {
@@ -1284,6 +1326,11 @@
     }
 
     function openConversation(id) {
+      if (currentTypewriterTimer) {
+        clearInterval(currentTypewriterTimer);
+        currentTypewriterTimer = null;
+      }
+
       activeChatId = String(id);
       loadUserPrivateChats();
 
