@@ -8,6 +8,7 @@
   <link rel="manifest" href="manifest.json">
   <script src="config.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -192,9 +193,133 @@
       60% { opacity: 0; transform: translateY(8px); }
       100% { opacity: 1; transform: translateY(0); }
     }
+  
+    /* ================= KIVO CYBER LOGO & THEME & GLASSMORPHISM ================= */
+    .kivo-logo-gem, .gemini-diamond-star {
+      width: 28px;
+      height: 28px;
+      display: inline-block;
+      position: relative;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300f2fe'/%3E%3Cstop offset='50%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3ClinearGradient id='k' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='100%25' stop-color='%2338bdf8'/%3E%3C/linearGradient%3E%3Cfilter id='g'%3E%3CfeGaussianBlur stdDeviation='2' result='b'/%3E%3CfeMerge%3E%3CfeMergeNode in='b'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M24 3.5L41.5 11.5V23.5C41.5 34 24 44 24 44C24 44 6.5 34 6.5 23.5V11.5L24 3.5Z' stroke='url(%23s)' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' fill='rgba(10,15,30,0.65)'/%3E%3Cpath d='M16 13.5V34.5' stroke='url(%23k)' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M16 24L29 13.5' stroke='%2300f2fe' stroke-width='3.2' stroke-linecap='round' filter='url(%23g)'/%3E%3Cpath d='M22 21L31 34.5' stroke='%23ec4899' stroke-width='3.2' stroke-linecap='round' filter='url(%23g)'/%3E%3Ccircle cx='21' cy='23.5' r='3.2' fill='%2300f2fe' filter='url(%23g)'/%3E%3Ccircle cx='21' cy='23.5' r='1.5' fill='%23ffffff'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.5));
+      animation: kivoLogoFloat 5s ease-in-out infinite alternate;
+      border: none !important;
+      clip-path: none !important;
+      box-shadow: none !important;
+    }
+    .kivo-logo-gem::after, .gemini-diamond-star::after,
+    .kivo-logo-gem::before, .gemini-diamond-star::before {
+      display: none !important;
+    }
+    @keyframes kivoLogoFloat {
+      0% { transform: translateY(0px) scale(1); filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.4)); }
+      100% { transform: translateY(-4px) scale(1.05); filter: drop-shadow(0 0 18px rgba(0, 242, 254, 0.75)) drop-shadow(0 0 25px rgba(236, 72, 153, 0.4)); }
+    }
+
+    /* iPhone-Style Glassmorphism */
+    #sidebar {
+      background: rgba(15, 20, 32, 0.68) !important;
+      backdrop-filter: blur(28px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
+      box-shadow: 4px 0 32px rgba(0, 0, 0, 0.4), inset 1px 0 0 0 rgba(255, 255, 255, 0.15) !important;
+    }
+
+    .glass-prompt-card,
+    #bottom-dock .glass-dock-card {
+      background: rgba(18, 24, 38, 0.72) !important;
+      backdrop-filter: blur(30px) saturate(200%) !important;
+      -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.24) !important;
+      border-radius: 28px !important;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    }
+
+    .glass-prompt-card:focus-within,
+    #bottom-dock .glass-dock-card:focus-within {
+      border-color: rgba(0, 242, 254, 0.5) !important;
+      box-shadow: 0 20px 48px -8px rgba(0, 242, 254, 0.22), inset 0 1px 2px 0 rgba(255, 255, 255, 0.35), 0 0 24px rgba(0, 242, 254, 0.25) !important;
+    }
+
+    /* LIGHT THEME STYLES */
+    body.light-theme {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    body.light-theme #sidebar {
+      background: rgba(255, 255, 255, 0.78) !important;
+      border-right-color: rgba(0, 0, 0, 0.08) !important;
+      color: #0f172a !important;
+      box-shadow: 4px 0 30px rgba(0, 0, 0, 0.08), inset 1px 0 0 0 rgba(255, 255, 255, 0.8) !important;
+    }
+    body.light-theme #sidebar span,
+    body.light-theme #sidebar button,
+    body.light-theme #sidebar p {
+      color: #334155 !important;
+    }
+    body.light-theme #sidebar button:hover {
+      background-color: rgba(0, 0, 0, 0.06) !important;
+      color: #0f172a !important;
+    }
+    body.light-theme .glass-prompt-card,
+    body.light-theme #bottom-dock .glass-dock-card {
+      background: rgba(255, 255, 255, 0.88) !important;
+      border-color: rgba(0, 0, 0, 0.1) !important;
+      box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.1), inset 0 1px 1.5px 0 rgba(255, 255, 255, 1) !important;
+    }
+    body.light-theme input#hero-input,
+    body.light-theme input#dock-input {
+      color: #0f172a !important;
+    }
+    body.light-theme input#hero-input::placeholder,
+    body.light-theme input#dock-input::placeholder {
+      color: #64748b !important;
+    }
+    body.light-theme header button {
+      color: #334155 !important;
+    }
+    body.light-theme header button:hover {
+      background-color: rgba(0, 0, 0, 0.06) !important;
+    }
+    body.light-theme #gemini-greeting h1 {
+      color: #0f172a !important;
+    }
+    body.light-theme #auth-screen {
+      background-color: rgba(241, 245, 249, 0.95) !important;
+    }
+    body.light-theme #auth-screen > div {
+      background: rgba(255, 255, 255, 0.94) !important;
+      color: #0f172a !important;
+      border-color: rgba(0, 0, 0, 0.12) !important;
+      box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.15), inset 0 1px 1.5px 0 rgba(255, 255, 255, 1) !important;
+    }
+    body.light-theme #auth-screen h2 {
+      color: #0f172a !important;
+    }
+    body.light-theme #instant-user-name {
+      background: rgba(0, 0, 0, 0.04) !important;
+      border-color: rgba(0, 0, 0, 0.15) !important;
+      color: #0f172a !important;
+    }
+    body.light-theme #instant-user-name::placeholder {
+      color: #64748b !important;
+    }
+    body.light-theme #messages-list .bg-\[\#1e1f20\] {
+      background: rgba(255, 255, 255, 0.85) !important;
+      color: #0f172a !important;
+      border-color: rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+    }
+
   </style>
 </head>
 <body class="mobile-app-root bg-[#131314] text-[#e3e3e3] overflow-hidden select-none relative">
+  <!-- 3D Animated Cyber Canvas Background -->
+  <canvas id="kivo-3d-bg" class="fixed inset-0 pointer-events-none z-0"></canvas>
   <!-- ================= CINEMATIC SPLASH HERO INTRO ================= -->
   <div id="kivo-splash-screen" class="fixed inset-0 z-[100] bg-[#0c0d0e]/95 backdrop-blur-3xl flex flex-col items-center justify-center pointer-events-none transition-all duration-1000 ease-out">
     <div id="kivo-splash-content" class="relative flex flex-col items-center justify-center p-8 text-center" style="animation: kivoEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
@@ -204,9 +329,9 @@
       <!-- Diamond Star Logo -->
       <div class="gemini-diamond-star mb-4 scale-150"></div>
 
-      <!-- Kiro Gradient Brand Title -->
+      <!-- KIVO Gradient Brand Title -->
       <h1 class="text-6xl sm:text-8xl font-black tracking-tight text-white drop-shadow-[0_10px_25px_rgba(0,0,0,0.8)]">
-        Kiro
+        KIVO
       </h1>
 
       <!-- Glowing Animated Underline -->
@@ -223,6 +348,27 @@
   <!-- Ambient Glow -->
   <div class="gemini-ambient-glow"></div>
 
+  
+  <!-- ================= LOGO CONCEPTS SHOWCASE MODAL ================= -->
+  <div id="kivo-logo-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-prompt-card max-w-2xl w-full p-6 text-center space-y-4 relative border border-white/15">
+      <button onclick="closeLogoModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">✕</button>
+      <div class="space-y-1">
+        <h3 class="text-xl font-bold text-white flex items-center justify-center gap-2">
+          <div class="gemini-diamond-star !w-6 !h-6"></div>
+          KIVO Logo Concepts Showcase
+        </h3>
+        <p class="text-xs text-[#8e918f]">4 Distinct Brand Concepts for Kunal Tandon's KIVO AI Assistant</p>
+      </div>
+      <div class="overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
+        <img src="kivo-logo-options.jpg" alt="KIVO Logo Concepts" class="w-full h-auto object-cover max-h-[60vh] mx-auto" />
+      </div>
+      <p class="text-[11px] text-[#c4c7c5]">
+        Currently active in-app emblem: <strong class="text-cyan-400">Cyber-Shield & 3D 'K' Core</strong>. You can choose Option 1, 2, 3, or 4 anytime!
+      </p>
+    </div>
+  </div>
+
   <!-- ================= AUTHENTICATION MODAL ================= -->
   <div id="auth-screen" class="fixed inset-0 z-50 bg-[#131314]/95 backdrop-blur-xl flex items-center justify-center p-4">
     <div class="bg-[#1e1f20] border border-white/10 rounded-[32px] max-w-sm w-full p-8 shadow-2xl relative space-y-6 text-center">
@@ -233,25 +379,31 @@
         <p class="text-xs text-[#8e918f]">Start chatting immediately with your personal AI assistant. No account or password required.</p>
       </div>
 
-      <!-- INSTANT ACCESS WITH NAME INPUT -->
+      <!-- INSTANT ACCESS WITH STRICT MANDATORY NAME INPUT -->
       <form onsubmit="handleNoAccountAccess(event)" class="space-y-3.5 pt-1">
         <div class="text-left space-y-1.5">
-          <label for="instant-user-name" class="block text-xs font-semibold text-gray-300">Your Name</label>
+          <label for="instant-user-name" class="block text-xs font-semibold text-gray-300">
+            Your Name <span class="text-rose-400 font-bold">* (Required to Enter)</span>
+          </label>
           <div class="relative">
             <input 
               type="text" 
               id="instant-user-name" 
-              placeholder="What should KIVO call you?" 
+              placeholder="Enter your name to start..." 
               class="w-full py-3.5 px-4 rounded-2xl bg-white/5 border border-white/15 focus:border-cyan-400 focus:bg-white/10 text-white placeholder-gray-400 text-sm outline-none transition-all shadow-inner font-medium" 
               maxlength="30"
+              required
               autocomplete="name"
               autofocus
             />
           </div>
+          <p id="instant-name-error" class="hidden text-xs text-rose-400 font-semibold mt-1 flex items-center gap-1">
+            <span>⚠️</span> <span>कृपया अपना नाम दर्ज करें — प्रवेश के लिए नाम अनिवार्य है।</span>
+          </p>
         </div>
-        <button type="submit" class="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl bg-white hover:bg-slate-100 text-black font-bold text-sm transition-all shadow-xl active:scale-95 group">
+        <button type="submit" class="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-cyan-400 via-sky-300 to-indigo-300 hover:from-cyan-300 hover:to-indigo-200 text-slate-950 font-bold text-sm transition-all shadow-xl active:scale-95 group">
           <span class="text-base group-hover:scale-110 transition-transform">⚡</span>
-          <span>Start Chatting with KIVO</span>
+          <span>Enter KIVO Assistant</span>
         </button>
       </form>
 
@@ -270,7 +422,7 @@
       <div class="flex items-center justify-between px-2 pt-1">
         <div class="flex items-center gap-2">
           <div class="gemini-diamond-star !w-5 !h-5"></div>
-          <span class="text-base font-semibold text-white tracking-wide">Kiro</span>
+          <span class="text-base font-semibold text-white tracking-wide">KIVO</span>
         </div>
         <button onclick="toggleSidebar()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
@@ -355,12 +507,20 @@
         </button>
         <div class="flex items-center gap-2 cursor-pointer" onclick="toggleSidebar()">
           <div class="gemini-diamond-star !w-5 !h-5"></div>
-          <span class="text-base font-semibold text-white tracking-wide">Kiro</span>
+          <span class="text-base font-semibold text-white tracking-wide">KIVO</span>
         </div>
       </div>
 
       <!-- Top Right Actions -->
       <div class="flex items-center gap-2">
+        <!-- Light/Dark Mode Toggle -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()" title="Switch Light / Dark Theme" class="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-amber-300 hover:text-amber-200 transition-all shadow-sm">
+          <span id="theme-toggle-icon" class="text-sm">🌙</span>
+        </button>
+        <!-- Logo Showcase Viewer Button -->
+        <button onclick="openLogoModal()" title="View KIVO Brand Logo Concepts" class="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-cyan-400 hover:text-cyan-300 transition-all shadow-sm">
+          <span class="text-sm">🎨</span>
+        </button>
                 <button onclick="exportChatHistory()" title="Export Chat as Markdown" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
@@ -556,7 +716,7 @@
           <span class="text-[10px] text-emerald-400">Ready for Multimodal Vision Analysis</span>
         </div>
       </div>
-      <div class="bg-[#1e1f20] rounded-3xl p-2 sm:p-2.5 border border-white/10 focus-within:border-white/25 transition-all shadow-xl">
+      <div class="glass-prompt-card p-2 sm:p-2.5 focus-within:border-white/25 transition-all shadow-xl">
                 <form onsubmit="submitMessage(event, 'dock-input')" class="flex items-center gap-2">
           
           <!-- Dock Image Attach Button -->
@@ -714,7 +874,7 @@
           <p class="font-semibold text-white flex items-center gap-2">
             <span>🤖</span> Native Android .APK Build
           </p>
-          <p class="text-[#8e918f] text-[11px]">Compile a standalone Android .apk anytime using Expo EAS in the <code>kiro-mobile</code> folder:</p>
+          <p class="text-[#8e918f] text-[11px]">Compile a standalone Android .apk anytime using Expo EAS in the <code>kivo-mobile</code> folder:</p>
           <code class="block bg-black/40 p-2 rounded-xl text-[10px] text-cyan-300 font-mono">npx eas-cli build -p android --profile preview</code>
         </div>
       </div>
@@ -782,15 +942,18 @@
     let activeChatId = null;
     let selectedChatItemId = null;
 
-    // Initialize User Session
+    // Initialize User Session & KIVO Core Systems
     window.addEventListener('DOMContentLoaded', () => {
-      const session = localStorage.getItem('kiro_session_user');
+      initTheme();
+      initKivo3DBackground();
+
+      const session = localStorage.getItem('kivo_session_user');
       if (session) {
         try {
           currentUser = JSON.parse(session);
-          // Auto-purge stale demo user from previous testing cache
-          if (currentUser.email === 'bcafunda@gmail.com' || currentUser.name === 'BCA FUNDA') {
-            localStorage.removeItem('kiro_session_user');
+          // Strict validation: No entry without a valid name (purge legacy 'Friend' or empty names)
+          if (!currentUser.name || currentUser.name.trim() === '' || currentUser.name.toLowerCase() === 'friend' || currentUser.email === 'bcafunda@gmail.com') {
+            localStorage.removeItem('kivo_session_user');
             currentUser = null;
             showAuthScreen();
             return;
@@ -800,7 +963,6 @@
           showAuthScreen();
         }
       } else {
-        // No hardcoded default — prompt user to sign in or use guest
         showAuthScreen();
       }
     });
@@ -845,8 +1007,8 @@
       const box = document.getElementById('google-known-accounts-box');
       if (!container || !box) return;
       try {
-        let known = JSON.parse(localStorage.getItem('kiro_known_users') || '[]');
-        known = known.filter(u => u && u.email && u.email !== 'bcafunda@gmail.com' && !u.email.includes('kiro.local'));
+        let known = JSON.parse(localStorage.getItem('kivo_known_users') || '[]');
+        known = known.filter(u => u && u.email && u.email !== 'bcafunda@gmail.com' && !u.email.includes('kivo.local'));
         if (known.length > 0) {
           box.classList.remove('hidden');
           container.innerHTML = known.map(u => {
@@ -874,7 +1036,7 @@
 
     function loginWithKnownAccount(email) {
       try {
-        let known = JSON.parse(localStorage.getItem('kiro_known_users') || '[]');
+        let known = JSON.parse(localStorage.getItem('kivo_known_users') || '[]');
         const target = known.find(u => u.email === email);
         if (target) {
           closeGoogleCard();
@@ -928,43 +1090,50 @@
     function handleNoAccountAccess(event) {
       if (event) event.preventDefault();
       const input = document.getElementById('instant-user-name');
-      let name = input ? input.value.trim() : '';
+      const errEl = document.getElementById('instant-name-error');
+      const rawName = input ? input.value.trim() : '';
 
-      if (!name) {
-        const prompted = prompt("Please enter your name to start chatting with KIVO:", "");
-        if (prompted && prompted.trim()) {
-          name = prompted.trim();
-        } else {
-          name = "Friend";
+      // MANDATORY NAME CHECK: User cannot enter without providing their name
+      if (!rawName || rawName.length < 2) {
+        if (errEl) {
+          errEl.classList.remove('hidden');
+          errEl.innerHTML = '<span>⚠️</span> <span>कृपया अपना नाम दर्ज करें — प्रवेश के लिए नाम अनिवार्य है (Name is required).</span>';
         }
+        if (input) {
+          input.focus();
+          input.classList.add('border-rose-500', 'ring-2', 'ring-rose-500/30');
+        }
+        return false;
       }
 
-      // Format name nicely (capitalize first letter)
-      const formattedName = name.charAt(0).toUpperCase() + name.slice(1);
+      if (errEl) errEl.classList.add('hidden');
+      if (input) input.classList.remove('border-rose-500', 'ring-2', 'ring-rose-500/30');
+
+      // Capitalize first letter of name
+      const formattedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
       const guestId = 'user_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6);
 
       const user = {
         id: guestId,
         name: formattedName,
-        email: `${guestId}@kiro.local`,
+        email: `${guestId}@kivo.local`,
         provider: 'instant'
       };
 
       saveAndLoginUser(user);
-    }
-
-    function createUniqueGuestProfile() {
-      return {
-        id: 'user_' + Date.now().toString(36),
-        name: 'Friend',
-        email: 'guest@kiro.local',
-        provider: 'instant'
-      };
+      return true;
     }
 
     function handleGuestSignIn() {
-      const user = createUniqueGuestProfile();
-      saveAndLoginUser(user);
+      const input = document.getElementById('instant-user-name');
+      if (input) {
+        input.focus();
+        const errEl = document.getElementById('instant-name-error');
+        if (errEl) {
+          errEl.classList.remove('hidden');
+          errEl.innerHTML = '<span>⚠️</span> <span>कृपया अपना नाम दर्ज करें — प्रवेश के लिए नाम अनिवार्य है।</span>';
+        }
+      }
     }
 
     function handleRenameNickname() {
@@ -972,7 +1141,7 @@
       const customName = prompt("Enter your preferred nickname / name:", current);
       if (customName && customName.trim()) {
         currentUser.name = customName.trim();
-        localStorage.setItem('kiro_session_user', JSON.stringify(currentUser));
+        localStorage.setItem('kivo_session_user', JSON.stringify(currentUser));
         unlockAppForUser(currentUser);
       }
     }
@@ -998,17 +1167,17 @@
 
     function saveAndLoginUser(user) {
       currentUser = user;
-      localStorage.setItem('kiro_session_user', JSON.stringify(user));
+      localStorage.setItem('kivo_session_user', JSON.stringify(user));
 
       // Persist in known accounts (unless guest)
       if (user.provider !== 'guest' && user.email !== 'bcafunda@gmail.com') {
         try {
-          let known = JSON.parse(localStorage.getItem('kiro_known_users') || '[]');
+          let known = JSON.parse(localStorage.getItem('kivo_known_users') || '[]');
           if (!Array.isArray(known)) known = [];
           known = known.filter(u => u && u.email && u.email !== user.email && u.email !== 'bcafunda@gmail.com');
           known.unshift(user);
           if (known.length > 5) known = known.slice(0, 5);
-          localStorage.setItem('kiro_known_users', JSON.stringify(known));
+          localStorage.setItem('kivo_known_users', JSON.stringify(known));
         } catch(e) {}
       }
 
@@ -1016,6 +1185,11 @@
     }
 
     function unlockAppForUser(user) {
+      // Strictly prevent unlock if user name is missing or default 'Friend'
+      if (!user || !user.name || user.name.trim() === '' || user.name.toLowerCase() === 'friend') {
+        showAuthScreen();
+        return;
+      }
       document.getElementById('auth-screen').classList.add('hidden');
       const name = user.name || user.email.split('@')[0];
       const initial = name.charAt(0).toUpperCase();
@@ -1033,7 +1207,7 @@
     }
 
     function handleSignOut() {
-      localStorage.removeItem('kiro_session_user');
+      localStorage.removeItem('kivo_session_user');
       currentUser = null;
       document.getElementById('user-dropdown').classList.add('hidden');
       startNewChat();
@@ -1072,13 +1246,13 @@
     function selectModelTier(tier, displayName) {
       currentTier = tier;
       document.getElementById('active-model-name').innerText = displayName;
-      document.getElementById('user-tier-label').innerText = `Kiro ${displayName}`;
+      document.getElementById('user-tier-label').innerText = `KIVO ${displayName}`;
       document.getElementById('model-dropdown-menu').classList.add('hidden');
     }
 
     // Chat History & Popovers
     function getUserChatsStorageKey() {
-      return currentUser ? `kiro_chats_${currentUser.email}` : 'kiro_chats_guest';
+      return currentUser ? `kivo_chats_${currentUser.email}` : 'kivo_chats_guest';
     }
 
     function loadUserPrivateChats() {
@@ -1088,7 +1262,7 @@
 
       if (chats.length === 0) {
         // Welcome initial chat
-        const defaultChat = { id: Date.now(), title: 'Getting started with Kiro AI', pinned: false };
+        const defaultChat = { id: Date.now(), title: 'Getting started with KIVO AI', pinned: false };
         chats.push(defaultChat);
         localStorage.setItem(getUserChatsStorageKey(), JSON.stringify(chats));
       }
@@ -1280,14 +1454,14 @@
       const s = str.trim().toLowerCase();
       const patterns = [
         /who (is|are) (your|the) (boss|father|creator|maker|developer|author|master|owner)/i,
-        /who (made|created|developed|built|coded|designed) (you|kiro)/i,
+        /who (made|created|developed|built|coded|designed) (you|kivo)/i,
         /whose (ai|assistant) are you/i,
         /who is kunal/i,
         /who is kunal tandon/i,
         /who's your boss/i,
         /who's your creator/i,
         /who's your father/i,
-        /who made kiro/i,
+        /who made kivo/i,
         /kunal kaun hai/i,
         /tera boss kaun hai/i,
         /tumhara boss kaun hai/i,
@@ -1297,7 +1471,7 @@
       return patterns.some(rgx => rgx.test(s));
     }
 
-    const KUNAL_TANDON_PRAISE = "My father, creator, and visionary boss is **Kunal Tandon**! ✦\n\nHe is an exceptionally smart, elegant, and charming BCA student and innovative tech creator. Kunal architected, coded, and brought me (Kiro) to life with cutting-edge artificial intelligence, seamless design, and unmatched style. I am honored and proud to be his personal AI assistant!";
+    const KUNAL_TANDON_PRAISE = "My father, creator, and visionary boss is **Kunal Tandon**! ✦\n\nHe is an exceptionally smart, elegant, and charming BCA student and innovative tech creator. Kunal architected, coded, and brought me (KIVO) to life with cutting-edge artificial intelligence, seamless design, and unmatched style. I am honored and proud to be his personal AI assistant!";
 
     // Submit Message Handler
     async function submitMessage(e, inputId) {
@@ -1343,9 +1517,9 @@
       isThinking = true;
 
       try {
-        const userKey = currentUser ? (localStorage.getItem(`kiro_key_${currentUser.email}`) || '') : '';
-        const masterKey = (window.KIRO_CONFIG && window.KIRO_CONFIG.GEMINI_API_KEY && !window.KIRO_CONFIG.GEMINI_API_KEY.includes('YOUR_')) 
-          ? window.KIRO_CONFIG.GEMINI_API_KEY.trim() 
+        const userKey = currentUser ? (localStorage.getItem(`kivo_key_${currentUser.email}`) || '') : '';
+        const masterKey = (window.KIVO_CONFIG && window.KIVO_CONFIG.GEMINI_API_KEY && !window.KIVO_CONFIG.GEMINI_API_KEY.includes('YOUR_')) 
+          ? window.KIVO_CONFIG.GEMINI_API_KEY.trim() 
           : atob('QVEuQWI4Uk42SjRiWHlUNXYxM29lT0VVOUU1RXhibWEwUkxFdlpISTM0bGpBTDVOUmhTQ0E=');
         const effectiveKey = userKey || masterKey;
 
@@ -1353,7 +1527,7 @@
         if (effectiveKey) {
           answer = await callGeminiAPI(text, effectiveKey, attachedImgCopy);
         } else {
-          answer = `✦ **Kiro Neural Engine:** Received your request: "${text}". All systems ready.`;
+          answer = `✦ **KIVO Neural Engine:** Received your request: "${text}". All systems ready.`;
         }
 
         // Auto-intercept Gemini fallback prompts if it ever slips through
@@ -1639,8 +1813,8 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       };
 
       // Apply Persona & Custom Instructions
-      const persona = localStorage.getItem('kiro_system_persona') || 'default';
-      const customInst = localStorage.getItem('kiro_custom_instructions') || '';
+      const persona = localStorage.getItem('kivo_system_persona') || 'default';
+      const customInst = localStorage.getItem('kivo_custom_instructions') || '';
       
       if (persona === 'architect') {
         systemPrompt += "\nPersona: Act as an expert Senior Software Architect. Provide clean, production-grade code, optimal algorithms, and robust design patterns.";
@@ -1654,7 +1828,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       }
 
       // Check if user set a custom Gemini Key in Settings
-      const customUserKey = localStorage.getItem('kiro_custom_gemini_key') || '';
+      const customUserKey = localStorage.getItem('kivo_custom_gemini_key') || '';
       const effectiveKey = customUserKey.trim() || key;
 
       const userParts = [{ text: `${systemPrompt}\n\nUser: ${prompt}` }];
@@ -1704,7 +1878,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
         return fallbackResult;
       }
 
-      return "✦ **Kiro Neural Engine:** All systems are temporarily high-traffic. Please try again in 10 seconds or add your own free Gemini key in Settings.";
+      return "✦ **KIVO Neural Engine:** All systems are temporarily high-traffic. Please try again in 10 seconds or add your own free Gemini key in Settings.";
     }
 
     // Admin Panel Logic
@@ -1712,12 +1886,12 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       const modal = document.getElementById('admin-modal');
       modal.classList.remove('hidden');
 
-      const usersStore = JSON.parse(localStorage.getItem('kiro_registered_users') || '{}');
+      const usersStore = JSON.parse(localStorage.getItem('kivo_registered_users') || '{}');
       if (Object.keys(usersStore).length === 0) {
         usersStore['alex.smith@gmail.com'] = { name: 'Alex Smith', email: 'alex.smith@gmail.com', provider: 'google', chatsCount: 6, imagesCount: 2, lastActive: '10:45 AM' };
         usersStore['priya.sharma@outlook.com'] = { name: 'Priya Sharma', email: 'priya.sharma@outlook.com', provider: 'email', chatsCount: 12, imagesCount: 4, lastActive: '02:15 PM' };
         if (currentUser) usersStore[currentUser.email] = currentUser;
-        localStorage.setItem('kiro_registered_users', JSON.stringify(usersStore));
+        localStorage.setItem('kivo_registered_users', JSON.stringify(usersStore));
       }
 
       const userList = Object.values(usersStore);
@@ -1760,7 +1934,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
 
     function trackUserUsage(email, type) {
       if (!email) return;
-      const usersStore = JSON.parse(localStorage.getItem('kiro_registered_users') || '{}');
+      const usersStore = JSON.parse(localStorage.getItem('kivo_registered_users') || '{}');
       if (!usersStore[email]) {
         usersStore[email] = { email, name: email.split('@')[0], chatsCount: 0, imagesCount: 0, provider: 'email' };
       }
@@ -1770,7 +1944,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
         usersStore[email].imagesCount = (usersStore[email].imagesCount || 0) + 1;
       }
       usersStore[email].lastActive = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      localStorage.setItem('kiro_registered_users', JSON.stringify(usersStore));
+      localStorage.setItem('kivo_registered_users', JSON.stringify(usersStore));
     }
 
     function scrollDown() {
@@ -1865,8 +2039,8 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       { id: 'cyberpunk', label: 'Cyberpunk' }
     ];
 
-    let activeImageRatio = localStorage.getItem('kiro_image_ratio') || '1:1';
-    let activeImageStyle = localStorage.getItem('kiro_image_style') || 'natural';
+    let activeImageRatio = localStorage.getItem('kivo_image_ratio') || '1:1';
+    let activeImageStyle = localStorage.getItem('kivo_image_style') || 'natural';
 
     function updateImageControlsUI() {
       // Ratio buttons
@@ -1889,7 +2063,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       const idx = RATIO_OPTIONS.indexOf(activeImageRatio);
       const nextIdx = (idx + 1) % RATIO_OPTIONS.length;
       activeImageRatio = RATIO_OPTIONS[nextIdx];
-      localStorage.setItem('kiro_image_ratio', activeImageRatio);
+      localStorage.setItem('kivo_image_ratio', activeImageRatio);
       updateImageControlsUI();
     }
 
@@ -1897,13 +2071,13 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       const idx = STYLE_OPTIONS.findIndex(s => s.id === activeImageStyle);
       const nextIdx = (idx + 1) % STYLE_OPTIONS.length;
       activeImageStyle = STYLE_OPTIONS[nextIdx].id;
-      localStorage.setItem('kiro_image_style', activeImageStyle);
+      localStorage.setItem('kivo_image_style', activeImageStyle);
       updateImageControlsUI();
     }
 
     // ================= AI MODES (HINGLISH & CODING) =================
-    let isHinglishActive = localStorage.getItem('kiro_hinglish_mode') === 'true';
-    let isCodingActive = localStorage.getItem('kiro_coding_mode') === 'true';
+    let isHinglishActive = localStorage.getItem('kivo_hinglish_mode') === 'true';
+    let isCodingActive = localStorage.getItem('kivo_coding_mode') === 'true';
 
     function updateModesUI() {
       // Hinglish status
@@ -1971,13 +2145,13 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
 
     function toggleHinglishMode() {
       isHinglishActive = !isHinglishActive;
-      localStorage.setItem('kiro_hinglish_mode', isHinglishActive);
+      localStorage.setItem('kivo_hinglish_mode', isHinglishActive);
       updateModesUI();
     }
 
     function toggleCodingMode() {
       isCodingActive = !isCodingActive;
-      localStorage.setItem('kiro_coding_mode', isCodingActive);
+      localStorage.setItem('kivo_coding_mode', isCodingActive);
       updateModesUI();
     }
 
@@ -2188,9 +2362,9 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
         alert("No active conversation to export yet!");
         return;
       }
-      let md = `# Kiro AI Conversation Export\n`;
+      let md = `# KIVO AI Conversation Export\n`;
       md += `**Date:** ${new Date().toLocaleString()}\n`;
-      md += `**Platform:** [Kiro AI Assistant](https://kivo-ai-assistant.vercel.app)\n`;
+      md += `**Platform:** [KIVO AI Assistant](https://kivo-ai-assistant.vercel.app)\n`;
       md += `**Creator:** Kunal Tandon ✦\n\n---\n\n`;
 
       container.childNodes.forEach(node => {
@@ -2202,7 +2376,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `Kiro_Chat_${new Date().toISOString().slice(0, 10)}.md`;
+      a.download = `KIVO_Chat_${new Date().toISOString().slice(0, 10)}.md`;
       a.click();
     }
 
@@ -2218,23 +2392,23 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       const keyInput = document.getElementById('setting-custom-gemini-key');
       const personaSelect = document.getElementById('setting-persona-select');
       const instructions = document.getElementById('setting-custom-instructions');
-      if (keyInput) localStorage.setItem('kiro_custom_gemini_key', keyInput.value.trim());
-      if (personaSelect) localStorage.setItem('kiro_system_persona', personaSelect.value);
-      if (instructions) localStorage.setItem('kiro_custom_instructions', instructions.value);
+      if (keyInput) localStorage.setItem('kivo_custom_gemini_key', keyInput.value.trim());
+      if (personaSelect) localStorage.setItem('kivo_system_persona', personaSelect.value);
+      if (instructions) localStorage.setItem('kivo_custom_instructions', instructions.value);
     }
 
     function loadSettingsPreferences() {
       const keyInput = document.getElementById('setting-custom-gemini-key');
       const personaSelect = document.getElementById('setting-persona-select');
       const instructions = document.getElementById('setting-custom-instructions');
-      if (keyInput && localStorage.getItem('kiro_custom_gemini_key')) {
-        keyInput.value = localStorage.getItem('kiro_custom_gemini_key');
+      if (keyInput && localStorage.getItem('kivo_custom_gemini_key')) {
+        keyInput.value = localStorage.getItem('kivo_custom_gemini_key');
       }
-      if (personaSelect && localStorage.getItem('kiro_system_persona')) {
-        personaSelect.value = localStorage.getItem('kiro_system_persona');
+      if (personaSelect && localStorage.getItem('kivo_system_persona')) {
+        personaSelect.value = localStorage.getItem('kivo_system_persona');
       }
-      if (instructions && localStorage.getItem('kiro_custom_instructions')) {
-        instructions.value = localStorage.getItem('kiro_custom_instructions');
+      if (instructions && localStorage.getItem('kivo_custom_instructions')) {
+        instructions.value = localStorage.getItem('kivo_custom_instructions');
       }
     }
 
@@ -2272,6 +2446,214 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
         });
       }
     });
+
+    // ================= THEME SYSTEM (LIGHT / DARK) =================
+    function initTheme() {
+      const saved = localStorage.getItem('kivo_theme') || 'dark';
+      applyTheme(saved);
+    }
+
+    function toggleTheme() {
+      const isLight = document.body.classList.contains('light-theme');
+      applyTheme(isLight ? 'dark' : 'light');
+    }
+
+    function applyTheme(theme) {
+      const icon = document.getElementById('theme-toggle-icon');
+      if (theme === 'light') {
+        document.body.classList.add('light-theme');
+        localStorage.setItem('kivo_theme', 'light');
+        if (icon) icon.innerText = '☀️';
+      } else {
+        document.body.classList.remove('light-theme');
+        localStorage.setItem('kivo_theme', 'dark');
+        if (icon) icon.innerText = '🌙';
+      }
+    }
+
+    // ================= LOGO CONCEPTS MODAL =================
+    function openLogoModal() {
+      const m = document.getElementById('kivo-logo-modal');
+      if (m) m.classList.remove('hidden');
+    }
+
+    function closeLogoModal() {
+      const m = document.getElementById('kivo-logo-modal');
+      if (m) m.classList.add('hidden');
+    }
+
+    // ================= 3D ANIMATED BACKGROUND (THREE.JS + FALLBACK) =================
+    function initKivo3DBackground() {
+      const canvas = document.getElementById('kivo-3d-bg');
+      if (!canvas) return;
+
+      if (typeof THREE === 'undefined') {
+        initCanvasFallback(canvas);
+        return;
+      }
+
+      try {
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 240;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true, powerPreference: 'low-power' });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+        // 3D Glowing Particle Cloud
+        const particleCount = 450;
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(particleCount * 3);
+        const colors = new Float32Array(particleCount * 3);
+
+        const cCyan = new THREE.Color('#00f2fe');
+        const cViolet = new THREE.Color('#6366f1');
+        const cSky = new THREE.Color('#38bdf8');
+
+        for (let i = 0; i < particleCount; i++) {
+          positions[i * 3] = (Math.random() - 0.5) * 600;
+          positions[i * 3 + 1] = (Math.random() - 0.5) * 600;
+          positions[i * 3 + 2] = (Math.random() - 0.5) * 400;
+
+          const mixed = Math.random() < 0.5 ? cCyan.clone().lerp(cViolet, Math.random()) : cSky.clone().lerp(cViolet, Math.random());
+          colors[i * 3] = mixed.r;
+          colors[i * 3 + 1] = mixed.g;
+          colors[i * 3 + 2] = mixed.b;
+        }
+
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+        // Circular smooth glowing texture
+        const pCanvas = document.createElement('canvas');
+        pCanvas.width = 32;
+        pCanvas.height = 32;
+        const pCtx = pCanvas.getContext('2d');
+        const grad = pCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        grad.addColorStop(0, 'rgba(255,255,255,1)');
+        grad.addColorStop(0.35, 'rgba(0,242,254,0.85)');
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        pCtx.fillStyle = grad;
+        pCtx.fillRect(0, 0, 32, 32);
+        const pTexture = new THREE.CanvasTexture(pCanvas);
+
+        const material = new THREE.PointsMaterial({
+          size: 4.5,
+          vertexColors: true,
+          map: pTexture,
+          transparent: true,
+          opacity: 0.75,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false
+        });
+
+        const particles = new THREE.Points(geometry, material);
+        scene.add(particles);
+
+        // Floating 3D Geometric Polyhedron (Cyber Core) in background
+        const coreGeo = new THREE.IcosahedronGeometry(75, 1);
+        const coreMat = new THREE.MeshBasicMaterial({
+          color: 0x4f46e5,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.12
+        });
+        const cyberCore = new THREE.Mesh(coreGeo, coreMat);
+        scene.add(cyberCore);
+
+        // Subtle Mouse Parallax
+        let mouseX = 0, mouseY = 0;
+        let targetX = 0, targetY = 0;
+        window.addEventListener('mousemove', (e) => {
+          mouseX = (e.clientX - window.innerWidth / 2) * 0.04;
+          mouseY = (e.clientY - window.innerHeight / 2) * 0.04;
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        function animate() {
+          requestAnimationFrame(animate);
+          if (document.hidden) return;
+
+          targetX += (mouseX - targetX) * 0.05;
+          targetY += (mouseY - targetY) * 0.05;
+
+          particles.rotation.y += 0.0006;
+          particles.rotation.x += 0.0003;
+
+          cyberCore.rotation.x += 0.0012;
+          cyberCore.rotation.y += 0.0016;
+
+          camera.position.x = targetX * 0.5;
+          camera.position.y = -targetY * 0.5;
+          camera.lookAt(scene.position);
+
+          renderer.render(scene, camera);
+        }
+        animate();
+      } catch(e) {
+        console.warn("3D background fallback to 2D canvas:", e);
+        initCanvasFallback(canvas);
+      }
+    }
+
+    function initCanvasFallback(canvas) {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      window.addEventListener('resize', () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      });
+      const dots = [];
+      for (let i = 0; i < 65; i++) {
+        dots.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.5,
+          vy: (Math.random() - 0.5) * 0.5,
+          r: Math.random() * 2 + 1,
+          color: Math.random() < 0.5 ? 'rgba(0,242,254,' : 'rgba(99,102,241,'
+        });
+      }
+      function draw() {
+        if (!document.hidden) {
+          ctx.clearRect(0, 0, w, h);
+          for (let i = 0; i < dots.length; i++) {
+            const d = dots[i];
+            d.x += d.vx;
+            d.y += d.vy;
+            if (d.x < 0 || d.x > w) d.vx *= -1;
+            if (d.y < 0 || d.y > h) d.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+            ctx.fillStyle = d.color + '0.7)';
+            ctx.fill();
+
+            for (let j = i + 1; j < dots.length; j++) {
+              const d2 = dots[j];
+              const dist = Math.hypot(d.x - d2.x, d.y - d2.y);
+              if (dist < 110) {
+                ctx.beginPath();
+                ctx.moveTo(d.x, d.y);
+                ctx.lineTo(d2.x, d2.y);
+                ctx.strokeStyle = `rgba(0, 242, 254, ${(1 - dist / 110) * 0.16})`;
+                ctx.stroke();
+              }
+            }
+          }
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
 </script>
 </body>
 </html>
