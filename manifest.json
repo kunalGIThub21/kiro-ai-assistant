@@ -1,20 +1,20 @@
 {
-  "name": "Kiro - Personal AI Assistant",
-  "short_name": "Kiro AI",
-  "description": "24/7 Personal AI Assistant for Workflow, Chat and Image Generation",
+  "name": "KIVO - Autonomous Personal AI Assistant",
+  "short_name": "KIVO",
+  "description": "24/7 Personal AI Assistant for Workflow, Chat and Image Generation engineered by Kunal Tandon",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#070a13",
-  "theme_color": "#070a13",
+  "background_color": "#131314",
+  "theme_color": "#131314",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://api.iconify.design/lucide:bot.svg?color=%236366f1",
+      "src": "https://api.iconify.design/lucide:sparkles.svg?color=%2300f5ff",
       "sizes": "192x192",
       "type": "image/svg+xml"
     },
     {
-      "src": "https://api.iconify.design/lucide:bot.svg?color=%236366f1",
+      "src": "https://api.iconify.design/lucide:sparkles.svg?color=%2300f5ff",
       "sizes": "512x512",
       "type": "image/svg+xml"
     }

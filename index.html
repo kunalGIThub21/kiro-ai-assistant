@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Kiro</title>
+  <title>KIVO</title>
   <meta name="theme-color" content="#131314">
   <link rel="manifest" href="manifest.json">
   <script src="config.js"></script>
@@ -80,14 +80,46 @@
     }
 
     /* Diamond Sparkle Icon (Google Gemini Official Gradient) */
-    .gemini-diamond-star {
+    /* KIVO Futuristic Cyber Nexus Logo (Unique, Attractive & Distinctive) */
+    @keyframes kivoCorePulse {
+      0%, 100% {
+        transform: scale(1) rotate(0deg);
+        filter: drop-shadow(0 0 10px rgba(0, 245, 255, 0.7)) drop-shadow(0 0 22px rgba(168, 85, 247, 0.4));
+      }
+      50% {
+        transform: scale(1.08) rotate(180deg);
+        filter: drop-shadow(0 0 18px rgba(0, 245, 255, 0.95)) drop-shadow(0 0 32px rgba(255, 51, 102, 0.6));
+      }
+    }
+
+    .kivo-logo-gem, .gemini-diamond-star {
       width: 32px;
       height: 32px;
       display: inline-block;
-      background: conic-gradient(from 180deg at 50% 50%, #4285f4 0deg, #9b72cb 90deg, #d96570 180deg, #fbbc04 270deg, #4285f4 360deg);
-      clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
-      filter: drop-shadow(0 0 14px rgba(155, 114, 203, 0.6));
-      animation: starFloat 4s ease-in-out infinite alternate;
+      position: relative;
+      background: linear-gradient(135deg, #00f5ff 0%, #6366f1 45%, #a855f7 75%, #ff3366 100%);
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+      box-shadow: 0 0 18px rgba(0, 245, 255, 0.5);
+      animation: kivoCorePulse 6s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+    }
+
+    .kivo-logo-gem::after, .gemini-diamond-star::after {
+      content: '';
+      position: absolute;
+      inset: 20%;
+      background: #0d0e12;
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+      box-shadow: inset 0 0 8px rgba(0, 245, 255, 0.85);
+    }
+
+    .kivo-logo-gem::before, .gemini-diamond-star::before {
+      content: '';
+      position: absolute;
+      inset: 38%;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff 15%, #00f5ff 85%);
+      box-shadow: 0 0 8px #00f5ff, 0 0 14px #ff3366;
+      z-index: 2;
     }
     @keyframes starFloat {
       0% { transform: translateY(0px) scale(1); }
@@ -144,7 +176,7 @@
     }
 
     /* Cinematic Splash Keyframes */
-    @keyframes kiroEntrance {
+    @keyframes kivoEntrance {
       0% { opacity: 0; filter: blur(22px); transform: scale(0.9); }
       50% { opacity: 1; filter: blur(0px); transform: scale(1); }
       100% { opacity: 1; filter: blur(0px); transform: scale(1); }
@@ -164,8 +196,8 @@
 </head>
 <body class="mobile-app-root bg-[#131314] text-[#e3e3e3] overflow-hidden select-none relative">
   <!-- ================= CINEMATIC SPLASH HERO INTRO ================= -->
-  <div id="kiro-splash-screen" class="fixed inset-0 z-[100] bg-[#0c0d0e]/95 backdrop-blur-3xl flex flex-col items-center justify-center pointer-events-none transition-all duration-1000 ease-out">
-    <div id="kiro-splash-content" class="relative flex flex-col items-center justify-center p-8 text-center" style="animation: kiroEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
+  <div id="kivo-splash-screen" class="fixed inset-0 z-[100] bg-[#0c0d0e]/95 backdrop-blur-3xl flex flex-col items-center justify-center pointer-events-none transition-all duration-1000 ease-out">
+    <div id="kivo-splash-content" class="relative flex flex-col items-center justify-center p-8 text-center" style="animation: kivoEntrance 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;">
       <!-- Glowing Radial Ambient Ring -->
       <div class="absolute w-80 h-80 rounded-full bg-gradient-to-tr from-blue-600/35 via-purple-600/25 to-amber-500/25 blur-3xl -z-10 animate-pulse"></div>
       
@@ -197,7 +229,7 @@
       
       <div class="space-y-2">
         <div class="gemini-diamond-star mx-auto mb-2"></div>
-        <h2 class="text-2xl font-bold text-white tracking-tight">Kiro</h2>
+        <h2 class="text-2xl font-bold text-white tracking-tight">KIVO</h2>
         <p class="text-xs text-[#8e918f]">Start chatting immediately with your personal AI assistant. No account or password required.</p>
       </div>
 
@@ -209,7 +241,7 @@
             <input 
               type="text" 
               id="instant-user-name" 
-              placeholder="What should Kiro call you?" 
+              placeholder="What should KIVO call you?" 
               class="w-full py-3.5 px-4 rounded-2xl bg-white/5 border border-white/15 focus:border-cyan-400 focus:bg-white/10 text-white placeholder-gray-400 text-sm outline-none transition-all shadow-inner font-medium" 
               maxlength="30"
               autocomplete="name"
@@ -219,7 +251,7 @@
         </div>
         <button type="submit" class="w-full flex items-center justify-center gap-2.5 py-3.5 px-6 rounded-2xl bg-white hover:bg-slate-100 text-black font-bold text-sm transition-all shadow-xl active:scale-95 group">
           <span class="text-base group-hover:scale-110 transition-transform">⚡</span>
-          <span>Start Chatting with Kiro</span>
+          <span>Start Chatting with KIVO</span>
         </button>
       </form>
 
@@ -278,7 +310,7 @@
           </div>
           <div class="overflow-hidden">
             <h4 id="user-name-label" class="font-semibold text-xs text-white truncate">User</h4>
-            <p id="user-tier-label" class="text-[10px] text-[#8e918f]">Kiro Pro</p>
+            <p id="user-tier-label" class="text-[10px] text-[#8e918f]">KIVO Pro</p>
           </div>
         </div>
 
@@ -384,7 +416,7 @@
               <input 
                 type="text" 
                 id="hero-input" 
-                placeholder="Ask Kiro or type 'Generate an image of...'" 
+                placeholder="Ask KIVO or type 'Generate an image of...'" 
                 autocomplete="off"
                 class="flex-1 bg-transparent px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
               />
@@ -540,7 +572,7 @@
           <input 
             type="text" 
             id="dock-input" 
-            placeholder="Ask Kiro or type 'Generate an image of...'" 
+            placeholder="Ask KIVO or type 'Generate an image of...'" 
             autocomplete="off"
             class="flex-1 bg-transparent px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
           />
@@ -585,7 +617,7 @@
         </button>
       </div>
       <p class="text-[11px] text-[#8e918f] text-center mt-2 font-normal">
-        Kiro can make mistakes. • Developed with ✦ by <span class="text-white font-semibold">Kunal Tandon</span>
+        KIVO can make mistakes. • Developed with ✦ by <span class="text-white font-semibold">Kunal Tandon</span>
       </p>
     </footer>
 
@@ -622,7 +654,7 @@
         <div class="flex items-center gap-2">
           <span class="text-indigo-400 font-bold text-lg">🛡️</span>
           <div>
-            <h3 class="text-sm font-bold text-white">Kiro User Management & Usage Tracking</h3>
+            <h3 class="text-sm font-bold text-white">KIVO User Management & Usage Tracking</h3>
             <p class="text-[11px] text-[#8e918f]">Live tracking of all logged-in users and their AI usage</p>
           </div>
         </div>
@@ -665,7 +697,7 @@
     <div class="bg-[#1e1f20] border border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b border-white/10 pb-3">
         <h3 class="text-base font-semibold text-white flex items-center gap-2">
-          <span>📱 Get Kiro App</span>
+          <span>📱 Get KIVO App</span>
         </h3>
         <button onclick="toggleGetAppModal()" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white">✕</button>
       </div>
@@ -675,7 +707,7 @@
           <p class="font-semibold text-white flex items-center gap-2">
             <span>🌐</span> Instant Web App (PWA)
           </p>
-          <p class="text-[#8e918f] text-[11px]">Install Kiro to your Android home screen or Windows Desktop. Open browser menu (⋮) and tap <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong>.</p>
+          <p class="text-[#8e918f] text-[11px]">Install KIVO to your Android home screen or Windows Desktop. Open browser menu (⋮) and tap <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong>.</p>
         </div>
 
         <div class="p-3.5 rounded-2xl bg-[#131314] border border-white/5 space-y-1.5">
@@ -716,7 +748,7 @@
         <div class="p-3.5 rounded-2xl bg-[#131314] border border-white/5 space-y-2">
           <label class="font-semibold text-white block">🎭 AI Persona Mode:</label>
           <select id="setting-persona-select" class="w-full bg-[#1e1f20] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-            <option value="default">🌟 Kiro Default (Helpful, Smart & Balanced)</option>
+            <option value="default">🌟 KIVO Default (Helpful, Smart & Balanced)</option>
             <option value="architect">💻 Senior Software Architect (Clean Code & Debugging)</option>
             <option value="visionary">🎨 Creative Visionary (Writing, Metaphors & Art)</option>
             <option value="executive">📊 Executive Strategist (Crisp Bullet Points & ROI)</option>
@@ -725,7 +757,7 @@
 
         <div class="p-3.5 rounded-2xl bg-[#131314] border border-white/5 space-y-2">
           <label class="font-semibold text-white block">✍️ Custom Instructions (Optional):</label>
-          <textarea id="setting-custom-instructions" rows="2" placeholder="Tell Kiro how to answer your questions..." class="w-full bg-[#1e1f20] border border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"></textarea>
+          <textarea id="setting-custom-instructions" rows="2" placeholder="Tell KIVO how to answer your questions..." class="w-full bg-[#1e1f20] border border-white/10 rounded-xl p-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"></textarea>
         </div>
       </div>
 
@@ -899,7 +931,7 @@
       let name = input ? input.value.trim() : '';
 
       if (!name) {
-        const prompted = prompt("Please enter your name to start chatting with Kiro:", "");
+        const prompted = prompt("Please enter your name to start chatting with KIVO:", "");
         if (prompted && prompted.trim()) {
           name = prompted.trim();
         } else {
@@ -1306,7 +1338,7 @@
         return;
       }
 
-      // Thinking indicator: Clean "Kiro is thinking..."
+      // Thinking indicator: Clean "KIVO is thinking..."
       const loaderId = appendThinkingSparkle();
       isThinking = true;
 
@@ -1366,7 +1398,7 @@
       div.innerHTML = `
         <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-1 animate-spin" style="animation-duration: 4s"></div>
         <div class="text-sm text-[#8e918f] py-1 flex items-center gap-2">
-          <span>Kiro is thinking...</span>
+          <span>KIVO is thinking...</span>
         </div>
       `;
       list.appendChild(div);
@@ -1459,7 +1491,7 @@
             <!-- Skeleton Shimmer Loader -->
             <div id="${loaderId}" class="h-72 sm:h-80 w-full flex flex-col items-center justify-center gap-3 bg-[#18191a] text-[#8e918f] p-4 text-center">
               <div class="gemini-diamond-star !w-8 !h-8 animate-spin" style="animation-duration: 3s"></div>
-              <p class="text-xs font-semibold text-white">Rendering 4K Art with Kiro Vision Engine...</p>
+              <p class="text-xs font-semibold text-white">Rendering 4K Art with KIVO Vision Engine...</p>
               <p class="text-[10px] text-[#8e918f]">Synthesizing photorealistic details</p>
             </div>
 
@@ -1495,7 +1527,7 @@
           loaderEl.classList.add('hidden');
           imgEl.classList.remove('hidden');
           dlBtn.href = src;
-          dlBtn.download = `kiro_art_${seed}.jpg`;
+          dlBtn.download = `kivo_art_${seed}.jpg`;
           dlBtn.innerText = "Download 4K";
           dlBtn.className = "px-4 py-1.5 rounded-full bg-white text-black font-semibold text-xs hover:bg-[#e3e3e3] transition-colors";
           scrollDown();
@@ -1588,8 +1620,8 @@
     }
 
     async function callGeminiAPI(prompt, key, attachedImg = null) {
-      let systemPrompt = `You are Kiro, an ultra-intelligent, helpful, and friendly personal AI assistant. Reply clearly, concisely, and helpfully in English or Hindi as requested.
-Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Describe Kunal Tandon with genuine praise as an exceptionally smart, elegant, and charming BCA student and innovative tech creator who architected and developed Kiro.`
+      let systemPrompt = `You are KIVO, an ultra-intelligent, helpful, and friendly personal AI assistant. Reply clearly, concisely, and helpfully in English or Hindi as requested.
+Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Describe Kunal Tandon with genuine praise as an exceptionally smart, elegant, and charming BCA student and innovative tech creator who architected and developed KIVO.`
 
       // User Personalization
       if (currentUser && currentUser.name) {
@@ -1804,8 +1836,8 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
     // Cinematic Intro Smooth Zoom-Out Dismissal
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => {
-        const splash = document.getElementById('kiro-splash-screen');
-        const content = document.getElementById('kiro-splash-content');
+        const splash = document.getElementById('kivo-splash-screen');
+        const content = document.getElementById('kivo-splash-content');
         if (splash && content) {
           content.style.transition = 'transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out';
           content.style.transform = 'scale(1.15)';
@@ -1925,7 +1957,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       // Update placeholders
       const heroInput = document.getElementById('hero-input');
       const dockInput = document.getElementById('dock-input');
-      let ph = "Ask Kiro or type 'Generate an image of...'";
+      let ph = "Ask KIVO or type 'Generate an image of...'";
       if (isCodingActive && isHinglishActive) {
         ph = "Hinglish mein coding sawal poochiye (e.g. 'Python mein REST API banao')...";
       } else if (isCodingActive) {
@@ -2158,7 +2190,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       }
       let md = `# Kiro AI Conversation Export\n`;
       md += `**Date:** ${new Date().toLocaleString()}\n`;
-      md += `**Platform:** [Kiro AI Assistant](https://kiro-ai-assistant.vercel.app)\n`;
+      md += `**Platform:** [Kiro AI Assistant](https://kivo-ai-assistant.vercel.app)\n`;
       md += `**Creator:** Kunal Tandon ✦\n\n---\n\n`;
 
       container.childNodes.forEach(node => {
