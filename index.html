@@ -200,7 +200,7 @@
       height: 28px;
       display: inline-block;
       position: relative;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='s' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300f2fe'/%3E%3Cstop offset='50%25' stop-color='%236366f1'/%3E%3Cstop offset='100%25' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3ClinearGradient id='k' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ffffff'/%3E%3Cstop offset='100%25' stop-color='%2338bdf8'/%3E%3C/linearGradient%3E%3Cfilter id='g'%3E%3CfeGaussianBlur stdDeviation='2' result='b'/%3E%3CfeMerge%3E%3CfeMergeNode in='b'/%3E%3CfeMergeNode in='SourceGraphic'/%3E%3C/feMerge%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M24 3.5L41.5 11.5V23.5C41.5 34 24 44 24 44C24 44 6.5 34 6.5 23.5V11.5L24 3.5Z' stroke='url(%23s)' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round' fill='rgba(10,15,30,0.65)'/%3E%3Cpath d='M16 13.5V34.5' stroke='url(%23k)' stroke-width='3.2' stroke-linecap='round'/%3E%3Cpath d='M16 24L29 13.5' stroke='%2300f2fe' stroke-width='3.2' stroke-linecap='round' filter='url(%23g)'/%3E%3Cpath d='M22 21L31 34.5' stroke='%23ec4899' stroke-width='3.2' stroke-linecap='round' filter='url(%23g)'/%3E%3Ccircle cx='21' cy='23.5' r='3.2' fill='%2300f2fe' filter='url(%23g)'/%3E%3Ccircle cx='21' cy='23.5' r='1.5' fill='%23ffffff'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Cdefs%3E  %3ClinearGradient id='tiMain' x1='10%' y1='0%' x2='90%' y2='100%'%3E   %3Cstop offset='0%' stop-color='%23ffffff'/%3E   %3Cstop offset='25%' stop-color='%23cbd5e1'/%3E   %3Cstop offset='50%' stop-color='%2364748b'/%3E   %3Cstop offset='75%' stop-color='%2394a3b8'/%3E   %3Cstop offset='100%' stop-color='%23e2e8f0'/%3E  %3C/linearGradient%3E  %3ClinearGradient id='tiSheen' x1='0%' y1='100%' x2='100%' y2='0%'%3E   %3Cstop offset='0%' stop-color='%2338bdf8' stop-opacity='0.9'/%3E   %3Cstop offset='45%' stop-color='%23c084fc' stop-opacity='0.8'/%3E   %3Cstop offset='100%' stop-color='%23ffffff' stop-opacity='0.95'/%3E  %3C/linearGradient%3E  %3ClinearGradient id='tiDepth' x1='0%' y1='0%' x2='100%' y2='100%'%3E   %3Cstop offset='0%' stop-color='%231e293b'/%3E   %3Cstop offset='100%' stop-color='%23475569'/%3E  %3C/linearGradient%3E  %3Cfilter id='tiGlow' x='-20%' y='-20%' width='140%' height='140%'%3E   %3CfeGaussianBlur stdDeviation='1.5' result='blur'/%3E   %3CfeMerge%3E    %3CfeMergeNode in='blur'/%3E    %3CfeMergeNode in='SourceGraphic'/%3E   %3C/feMerge%3E  %3C/filter%3E %3C/defs%3E %3C!-- Lower Ribbon Curve Fold (Depth Underlay) --%3E %3Cpath d='M15 26C15 26 21 31 27 34C32 36.5 37 36 39 35C35 37 28 37.5 22 34.5C17 32 13 28 15 26Z' fill='url(%23tiDepth)' opacity='0.7'/%3E %3C!-- Main Fluid Stem & Upper Arm (Continuous sweeping titanium ribbon) --%3E %3Cpath d='M14 34C11 25 13 16 19 12.5C23 10.2 26 12 24 16.5C21.5 22 17 25 16 29C15.5 31 16 33 17 33.5C18 34 20 33 22 31.5L34 16C37 12 41 11.5 41 12C41 12.5 35 18 28 24.5C24 28 20 31.5 18 34C16.5 36 14.8 36.2 14 34Z' fill='url(%23tiMain)' filter='url(%23tiGlow)'/%3E %3C!-- Iridescent Edge Highlight Stroke --%3E %3Cpath d='M14 34C11 25 13 16 19 12.5C23 10.2 26 12 24 16.5C21.5 22 17 25 16 29C15.5 31 16 33 17 33.5C18 34 20 33 22 31.5L34 16C37 12 41 11.5 41 12' stroke='url(%23tiSheen)' stroke-width='1.8' stroke-linecap='round'/%3E %3C!-- Lower Dynamic Sweeping Tail --%3E %3Cpath d='M23 25C26 28 32 33 39 34.5C41 35 39 36.5 36 36.5C30 36.5 23 32 19 28L23 25Z' fill='url(%23tiSheen)' filter='url(%23tiGlow)'/%3E%3C/svg%3E");
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
@@ -219,30 +219,36 @@
       100% { transform: translateY(-4px) scale(1.05); filter: drop-shadow(0 0 18px rgba(0, 242, 254, 0.75)) drop-shadow(0 0 25px rgba(236, 72, 153, 0.4)); }
     }
 
-    /* iPhone-Style Glassmorphism */
+    /* Apple-Style Frosted Glassmorphism */
+    body.mobile-app-root {
+      background: radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 85% 80%, rgba(168, 85, 247, 0.08) 0%, transparent 40%),
+                  #0c0e14 !important;
+    }
+
     #sidebar {
-      background: rgba(15, 20, 32, 0.68) !important;
-      backdrop-filter: blur(28px) saturate(190%) !important;
-      -webkit-backdrop-filter: blur(28px) saturate(190%) !important;
-      border-right: 1px solid rgba(255, 255, 255, 0.12) !important;
-      box-shadow: 4px 0 32px rgba(0, 0, 0, 0.4), inset 1px 0 0 0 rgba(255, 255, 255, 0.15) !important;
+      background: rgba(18, 22, 34, 0.52) !important;
+      backdrop-filter: blur(25px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(25px) saturate(190%) !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3), inset 1px 0 0 0 rgba(255, 255, 255, 0.12) !important;
     }
 
     .glass-prompt-card,
     #bottom-dock .glass-dock-card {
-      background: rgba(18, 24, 38, 0.72) !important;
-      backdrop-filter: blur(30px) saturate(200%) !important;
-      -webkit-backdrop-filter: blur(30px) saturate(200%) !important;
+      background: rgba(22, 28, 44, 0.52) !important;
+      backdrop-filter: blur(28px) saturate(200%) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
       border: 1px solid rgba(255, 255, 255, 0.14) !important;
-      box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.24) !important;
+      box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.4), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(255, 255, 255, 0.04) !important;
       border-radius: 28px !important;
       transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
 
     .glass-prompt-card:focus-within,
     #bottom-dock .glass-dock-card:focus-within {
-      border-color: rgba(0, 242, 254, 0.5) !important;
-      box-shadow: 0 20px 48px -8px rgba(0, 242, 254, 0.22), inset 0 1px 2px 0 rgba(255, 255, 255, 0.35), 0 0 24px rgba(0, 242, 254, 0.25) !important;
+      border-color: rgba(56, 189, 248, 0.5) !important;
+      box-shadow: 0 20px 44px -8px rgba(56, 189, 248, 0.25), inset 0 1px 2px 0 rgba(255, 255, 255, 0.35), 0 0 24px rgba(56, 189, 248, 0.2) !important;
     }
 
     /* LIGHT THEME STYLES */
@@ -349,30 +355,6 @@
   <div class="gemini-ambient-glow"></div>
 
   
-  <!-- ================= LOGO CONCEPTS SHOWCASE MODAL ================= -->
-  <div id="kivo-logo-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="glass-prompt-card max-w-2xl w-full p-6 text-center space-y-4 relative border border-white/15">
-      <button onclick="closeLogoModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors">✕</button>
-      <div class="space-y-1">
-        <h3 class="text-xl font-bold text-white flex items-center justify-center gap-2">
-          <div class="gemini-diamond-star !w-6 !h-6"></div>
-          KIVO Logo Concepts Showcase
-        </h3>
-        <p class="text-xs text-[#8e918f]">Exclusive Brand Concepts for Kunal Tandon's KIVO AI Assistant</p>
-      </div>
-      <div class="flex items-center justify-center gap-2 pt-1 pb-1">
-        <button type="button" onclick="switchLogoTab(2)" id="logo-tab-btn-2" class="px-3.5 py-1.5 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm transition-all">✨ Batch 2: Fluid & Ribbon (07-12)</button>
-        <button type="button" onclick="switchLogoTab(1)" id="logo-tab-btn-1" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-white/5 text-gray-400 hover:text-white border border-white/10 transition-all">Batch 1: Core Marks (01-06)</button>
-      </div>
-      <div class="overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
-        <img id="logo-showcase-img" src="kivo-logo-batch2.jpg" alt="KIVO Logo Concepts" class="w-full h-auto object-cover max-h-[60vh] mx-auto" />
-      </div>
-      <p class="text-[11px] text-[#c4c7c5]">
-        Currently active in-app emblem: <strong class="text-cyan-400">Cyber-Shield & 3D 'K' Core</strong>. You can choose Option 1, 2, 3, or 4 anytime!
-      </p>
-    </div>
-  </div>
-
   <!-- ================= AUTHENTICATION MODAL ================= -->
   <div id="auth-screen" class="fixed inset-0 z-50 bg-[#131314]/95 backdrop-blur-xl flex items-center justify-center p-4">
     <div class="bg-[#1e1f20] border border-white/10 rounded-[32px] max-w-sm w-full p-8 shadow-2xl relative space-y-6 text-center">
@@ -419,7 +401,7 @@
   </div>
 
   <!-- ================= LEFT SIDEBAR (EXACT GEMINI LAYOUT) ================= -->
-  <aside id="sidebar" class="w-64 bg-[#1e1f20] flex flex-col justify-between p-3 transition-all duration-300 z-30 shrink-0 border-r border-white/5 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:-translate-x-full">
+  <aside id="sidebar" class="w-64 flex flex-col justify-between p-3 transition-all duration-300 z-30 shrink-0 border-r border-white/5 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:-translate-x-full">
     
     <div class="space-y-3">
       <!-- Top Branding: Logo + Collapse Icon -->
@@ -441,6 +423,20 @@
         <svg class="text-[#c4c7c5] group-hover:text-white" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         <span>New chat</span>
       </button>
+      <!-- Animated Filter Search Bar (Expands under New Chat) -->
+      <div id="chat-filter-wrapper" class="hidden transition-all duration-300 ease-out pt-1 pb-1">
+        <div class="relative">
+          <input 
+            type="text" 
+            id="chat-filter-input" 
+            oninput="filterChatsLive(this.value)" 
+            placeholder="Search conversations..." 
+            class="w-full py-2 pl-8 pr-7 rounded-xl bg-white/10 border border-white/15 text-xs text-white placeholder-gray-400 focus:outline-none focus:border-cyan-400 focus:bg-white/15 transition-all shadow-inner font-medium"
+          />
+          <svg class="absolute left-2.5 top-2.5 text-gray-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <button type="button" onclick="clearAndCloseFilter()" title="Close search" class="absolute right-2 top-2 text-gray-400 hover:text-white text-xs w-4 h-4 flex items-center justify-center rounded-full hover:bg-white/10">✕</button>
+        </div>
+      </div>
 
       <!-- Recent Chats Header with Funnel Filter -->
       <div class="pt-2 px-2 flex items-center justify-between text-[#8e918f]">
@@ -517,22 +513,17 @@
 
       <!-- Top Right Actions -->
       <div class="flex items-center gap-2">
-        <!-- Light/Dark Mode Toggle -->
-        <button id="theme-toggle-btn" onclick="toggleTheme()" title="Switch Light / Dark Theme" class="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-amber-300 hover:text-amber-200 transition-all shadow-sm">
-          <span id="theme-toggle-icon" class="text-sm">🌙</span>
-        </button>
-        <!-- Logo Showcase Viewer Button -->
-        <button onclick="openLogoModal()" title="View KIVO Brand Logo Concepts" class="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-cyan-400 hover:text-cyan-300 transition-all shadow-sm">
-          <span class="text-sm">🎨</span>
-        </button>
-                <button onclick="exportChatHistory()" title="Export Chat as Markdown" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
+        <button onclick="exportChatHistory()" title="Export Chat as Markdown" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
         <button onclick="startNewChat()" title="New Chat" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </button>
+        <!-- Light/Dark Mode Toggle (Far Right Corner) -->
+        <button id="theme-toggle-btn" onclick="toggleTheme()" title="Switch Light / Dark Theme" class="w-9 h-9 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-amber-300 hover:text-amber-200 transition-all shadow-sm ml-1">
+          <span id="theme-toggle-icon" class="text-sm">🌙</span>
+        </button>
       </div>
-
     </header>
 
     <!-- Main Scrollable Chat Stage -->
@@ -1259,27 +1250,127 @@
       return currentUser ? `kivo_chats_${currentUser.email}` : 'kivo_chats_guest';
     }
 
+    function saveMessageToActiveChat(msgObj) {
+      if (!activeChatId) return;
+      try {
+        const key = 'kivo_msgs_' + activeChatId;
+        const msgs = JSON.parse(localStorage.getItem(key) || '[]');
+        msgs.push(msgObj);
+        localStorage.setItem(key, JSON.stringify(msgs));
+      } catch(e) {
+        console.warn('Storage save error:', e);
+      }
+    }
+
+    function openConversation(id) {
+      activeChatId = String(id);
+      loadUserPrivateChats();
+
+      document.getElementById('gemini-greeting').classList.add('hidden');
+      document.getElementById('messages-list').classList.remove('hidden');
+      document.getElementById('bottom-dock').classList.remove('hidden');
+
+      const list = document.getElementById('messages-list');
+      list.innerHTML = '';
+
+      const key = 'kivo_msgs_' + id;
+      const msgs = JSON.parse(localStorage.getItem(key) || '[]');
+
+      if (msgs.length === 0) {
+        const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
+        const target = chats.find(c => String(c.id) === String(id));
+        const title = target ? target.title : 'Conversation';
+        const infoDiv = document.createElement('div');
+        infoDiv.className = "text-center py-8 text-xs text-gray-400";
+        infoDiv.innerHTML = `<span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">✦ Chat: ${escapeHtml(title)}</span>`;
+        list.appendChild(infoDiv);
+      } else {
+        msgs.forEach(msg => {
+          if (msg.sender === 'user') {
+            appendUserMessage(msg.text, msg.image, true);
+          } else if (msg.sender === 'bot') {
+            if (msg.isImage) {
+              renderSavedImageCard(msg.imageUrl, msg.prompt);
+            } else {
+              renderSavedBotMessage(msg.text, msg.isError);
+            }
+          }
+        });
+      }
+
+      scrollDownSmooth();
+
+      if (window.innerWidth < 768) {
+        const sb = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (sb && !sb.classList.contains('max-md:-translate-x-full')) {
+          sb.classList.add('max-md:-translate-x-full');
+          if (overlay) overlay.classList.add('hidden');
+        }
+      }
+    }
+
+    function renderSavedBotMessage(markdown, isError) {
+      const list = document.getElementById('messages-list');
+      const div = document.createElement('div');
+      div.className = "flex items-start gap-3.5 max-w-2xl";
+      const renderedHtml = typeof marked !== 'undefined' ? marked.parse(markdown) : escapeHtml(markdown);
+      div.innerHTML = `
+        <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-0.5"></div>
+        <div class="text-sm text-[#e3e3e3] leading-relaxed space-y-2.5 flex-1 select-text">
+          <div class="prose prose-invert text-sm max-w-none">${renderedHtml}</div>
+          <div class="flex items-center gap-2 pt-1 text-[#8e918f]">
+            <button onclick="copyMessageText(this)" class="hover:text-white p-1 rounded transition-colors text-xs flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copy</span>
+            </button>
+            <button onclick="readAloudText(this)" class="hover:text-white p-1 rounded transition-colors text-xs flex items-center gap-1">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              <span>Listen</span>
+            </button>
+          </div>
+        </div>
+      `;
+      list.appendChild(div);
+    }
+
+    function renderSavedImageCard(imageUrl, prompt) {
+      const list = document.getElementById('messages-list');
+      const div = document.createElement('div');
+      div.className = "flex items-start gap-3.5 max-w-2xl";
+      div.innerHTML = `
+        <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-0.5"></div>
+        <div class="space-y-3 flex-1">
+          <div class="relative group rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/40">
+            <img src="${imageUrl}" class="w-full max-h-[500px] object-contain rounded-2xl mx-auto" />
+          </div>
+          <p class="text-xs text-gray-400 italic">Prompt: "${escapeHtml(prompt)}"</p>
+        </div>
+      `;
+      list.appendChild(div);
+    }
+
     function loadUserPrivateChats() {
       const list = document.getElementById('recent-chats-list');
+      if (!list) return;
       list.innerHTML = '';
       const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
 
       if (chats.length === 0) {
-        // Welcome initial chat
-        const defaultChat = { id: Date.now(), title: 'Getting started with KIVO AI', pinned: false };
-        chats.push(defaultChat);
-        localStorage.setItem(getUserChatsStorageKey(), JSON.stringify(chats));
+        list.innerHTML = '<div class="text-center text-[11px] text-[#8e918f] py-4">No recent chats</div>';
+        return;
       }
 
       chats.forEach((chat) => {
+        const isActive = String(chat.id) === String(activeChatId);
         const item = document.createElement('div');
-        item.className = "group relative flex items-center justify-between px-3 py-2 rounded-xl hover:bg-[#282a2c] text-xs text-[#c4c7c5] hover:text-white cursor-pointer transition-colors";
+        item.className = `group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs cursor-pointer transition-all ${isActive ? 'bg-white/15 text-white font-semibold border-l-2 border-cyan-400 pl-2.5 shadow-sm' : 'hover:bg-white/5 text-[#c4c7c5] hover:text-white'}`;
         item.innerHTML = `
-          <div onclick="fillPrompt('${escapeHtml(chat.title)}')" class="flex items-center gap-2 truncate flex-1 pr-2">
+          <div onclick="openConversation('${chat.id}')" class="flex items-center gap-2 truncate flex-1 pr-2">
             ${chat.pinned ? '<svg class="text-amber-400 shrink-0" width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-2-3V6a5 5 0 0 0-10 0v6l-2 3v2z"/></svg>' : ''}
             <span class="truncate">${escapeHtml(chat.title)}</span>
           </div>
-          <button onclick="openChatPopover(event, ${chat.id})" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-[#8e918f] hover:text-white transition-opacity">
+          <button onclick="openChatPopover(event, '${chat.id}')" class="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-[#8e918f] hover:text-white transition-opacity">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
           </button>
         `;
@@ -1289,24 +1380,18 @@
 
     function openChatPopover(e, id) {
       e.stopPropagation();
-      selectedChatItemId = id;
+      selectedChatItemId = String(id);
       const popover = document.getElementById('chat-item-popover');
       const btn = e.currentTarget || e.target.closest('button');
       const rect = btn.getBoundingClientRect();
       popover.style.top = Math.min(rect.top, window.innerHeight - 175) + 'px';
-      popover.style.left = (rect.right + 8) + 'px';
+      popover.style.left = Math.min(rect.right + 8, window.innerWidth - 180) + 'px';
       popover.classList.remove('hidden');
 
       const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
-      const target = chats.find(c => c.id === id);
+      const target = chats.find(c => String(c.id) === String(id));
       const isPinned = target && target.pinned;
       document.getElementById('pin-label').innerText = isPinned ? 'Unpin' : 'Pin';
-      const pinIcon = document.getElementById('popover-pin-icon');
-      if (pinIcon) {
-        pinIcon.innerHTML = isPinned
-          ? '<line x1="2" y1="2" x2="22" y2="22"/><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-2-3V6a5 5 0 0 0-10 0v6l-2 3v2z"/>'
-          : '<line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-2l-2-3V6a5 5 0 0 0-10 0v6l-2 3v2z"/>';
-      }
     }
 
     function toggleGetAppModal() {
@@ -1314,31 +1399,47 @@
     }
 
     window.addEventListener('click', () => {
-      document.getElementById('chat-item-popover').classList.add('hidden');
+      const p = document.getElementById('chat-item-popover');
+      if (p) p.classList.add('hidden');
     });
 
     function shareActiveConversation() {
       const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
-      const target = chats.find(c => c.id === selectedChatItemId);
-      navigator.clipboard?.writeText(window.location.href);
-      alert(`Conversation link for "${target?.title || 'Chat'}" copied to clipboard!`);
+      const target = chats.find(c => String(c.id) === String(selectedChatItemId));
+      if (!target) return;
+      const shareData = {
+        title: target.title,
+        text: `Check out this conversation with KIVO AI: "${target.title}"`,
+        url: window.location.href
+      };
+      if (navigator.share) {
+        navigator.share(shareData).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard!");
+      }
     }
 
     function togglePinConversation() {
       const key = getUserChatsStorageKey();
       let chats = JSON.parse(localStorage.getItem(key) || '[]');
-      chats = chats.map(c => c.id === selectedChatItemId ? { ...c, pinned: !c.pinned } : c);
-      localStorage.setItem(key, JSON.stringify(chats));
-      loadUserPrivateChats();
+      const target = chats.find(c => String(c.id) === String(selectedChatItemId));
+      if (target) {
+        target.pinned = !target.pinned;
+        chats.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+        localStorage.setItem(key, JSON.stringify(chats));
+        loadUserPrivateChats();
+      }
     }
 
     function renameActiveConversation() {
       const key = getUserChatsStorageKey();
       let chats = JSON.parse(localStorage.getItem(key) || '[]');
-      const target = chats.find(c => c.id === selectedChatItemId);
-      const newTitle = prompt("Enter new title for this chat:", target?.title || '');
+      const target = chats.find(c => String(c.id) === String(selectedChatItemId));
+      if (!target) return;
+      const newTitle = prompt("Rename conversation:", target.title);
       if (newTitle && newTitle.trim()) {
-        chats = chats.map(c => c.id === selectedChatItemId ? { ...c, title: newTitle.trim() } : c);
+        target.title = newTitle.trim();
         localStorage.setItem(key, JSON.stringify(chats));
         loadUserPrivateChats();
       }
@@ -1348,19 +1449,60 @@
       if (!confirm("Delete this conversation?")) return;
       const key = getUserChatsStorageKey();
       let chats = JSON.parse(localStorage.getItem(key) || '[]');
-      chats = chats.filter(c => c.id !== selectedChatItemId);
+      chats = chats.filter(c => String(c.id) !== String(selectedChatItemId));
       localStorage.setItem(key, JSON.stringify(chats));
+      localStorage.removeItem('kivo_msgs_' + selectedChatItemId);
+      if (String(activeChatId) === String(selectedChatItemId)) {
+        startNewChat();
+      } else {
+        loadUserPrivateChats();
+      }
+    }
+
+    function startNewChat() {
+      activeChatId = null;
+      document.getElementById('gemini-greeting').classList.remove('hidden');
+      document.getElementById('messages-list').classList.add('hidden');
+      document.getElementById('bottom-dock').classList.add('hidden');
+      document.getElementById('messages-list').innerHTML = '';
+      document.getElementById('hero-input').value = '';
+      document.getElementById('dock-input').value = '';
       loadUserPrivateChats();
     }
 
-    function saveChatHistory(firstPrompt) {
-      if (!currentUser) return;
-      const key = getUserChatsStorageKey();
-      const chats = JSON.parse(localStorage.getItem(key) || '[]');
-      const title = firstPrompt.length > 34 ? firstPrompt.substring(0, 34) + '...' : firstPrompt;
-      chats.unshift({ id: Date.now(), title, pinned: false });
-      localStorage.setItem(key, JSON.stringify(chats.slice(0, 20)));
-      loadUserPrivateChats();
+    // ================= INLINE ANIMATED SEARCH / FILTER BAR =================
+    function toggleFilterOnly() {
+      const wrapper = document.getElementById('chat-filter-wrapper');
+      const input = document.getElementById('chat-filter-input');
+      if (!wrapper) return;
+      const isHidden = wrapper.classList.toggle('hidden');
+      if (!isHidden && input) {
+        input.focus();
+      } else if (input) {
+        input.value = '';
+        filterChatsLive('');
+      }
+    }
+
+    function filterChatsLive(query) {
+      const q = (query || '').trim().toLowerCase();
+      const items = document.querySelectorAll('#recent-chats-list > div');
+      items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        if (!q || text.includes(q)) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function clearAndCloseFilter() {
+      const wrapper = document.getElementById('chat-filter-wrapper');
+      const input = document.getElementById('chat-filter-input');
+      if (input) input.value = '';
+      filterChatsLive('');
+      if (wrapper) wrapper.classList.add('hidden');
     }
 
     function fillPrompt(txt, targetId = 'hero-input') {
@@ -1554,17 +1696,31 @@
       }
     }
 
-    function appendUserMessage(text) {
+    function appendUserMessage(text, attachedImg = null, skipSave = false) {
       const list = document.getElementById('messages-list');
       const div = document.createElement('div');
       div.className = "flex justify-end";
+      let imgMarkup = '';
+      if (attachedImg && attachedImg.data) {
+        imgMarkup = `<img src="${attachedImg.data}" class="w-48 h-auto max-h-48 object-cover rounded-2xl mb-2 border border-white/10 shadow-md" />`;
+      }
       div.innerHTML = `
-        <div class="bg-[#282a2c] text-[#e3e3e3] rounded-3xl rounded-tr-xs px-5 py-3 max-w-xl text-sm leading-relaxed border border-white/5 font-normal">
-          ${escapeHtml(text)}
+        <div class="bg-gradient-to-r from-blue-600/30 to-indigo-600/30 backdrop-blur-md text-[#e3e3e3] rounded-3xl rounded-tr-xs px-5 py-3 max-w-xl text-sm leading-relaxed border border-white/10 font-normal shadow-md">
+          ${imgMarkup}
+          <div>${escapeHtml(text)}</div>
         </div>
       `;
       list.appendChild(div);
       scrollDown();
+
+      if (!skipSave && activeChatId) {
+        saveMessageToActiveChat({
+          sender: 'user',
+          text: text,
+          image: attachedImg ? { data: attachedImg.data, mime: attachedImg.mime, name: attachedImg.name } : null,
+          time: Date.now()
+        });
+      }
     }
 
     function appendThinkingSparkle() {
