@@ -1161,16 +1161,67 @@
     function isImagePrompt(str) {
       const s = str.trim().toLowerCase();
       if (s.startsWith('/image') || s.startsWith('/img') || s.startsWith('/art') || s.startsWith('image of ') || s.startsWith('picture of ') || s.startsWith('photo of ')) return true;
-      if (/^(draw|paint)\s+(a|an|the|\d+)/i.test(s)) return true;
-      const hasAction = /\b(generate|create|make|draw|paint|render|show me|produce)\b/i.test(s);
-      const hasVisualNoun = /\b(image|picture|photo|photograph|wallpaper|illustration|art|artwork|drawing|painting|portrait|sketch|render)\b/i.test(s);
-      return hasAction && hasVisualNoun;
+      if (/^(draw|paint|sketch)\b/i.test(s)) return true;
+      
+      const visualNouns = /(image|picture|photo|pic|wallpaper|illustration|art|artwork|drawing|painting|portrait|sketch|render|tasveer|chitra|dp|avatar|poster)/i;
+      const actionVerbs = /(generate|create|make|draw|paint|render|show me|produce|design|banao|bana do|bana de|bana|banaiye|karo|kar do|chahiye|dikhao|dikhaye)/i;
+
+      if (visualNouns.test(s) && actionVerbs.test(s)) return true;
+      if (/^(ek\s+)?(photo|image|pic|wallpaper|tasveer)\b/i.test(s)) return true;
+      if (/\b(banao|bana do|bana de|banaiye)\b/i.test(s) && !/\b(code|script|program|app|website|summary|table|list|poem|essay)\b/i.test(s)) return true;
+      if (/\b(wallpaper|4k art|anime art|portrait)\b/i.test(s)) return true;
+      
+      return false;
+    }
+
+    // Smart Multi-Lingual Sanitizer & Quality Enhancer
+    function sanitizeAndEnhanceImagePrompt(str, style) {
+      let prompt = str.trim();
+      prompt = prompt.replace(/^\s*(\/image|\/img|\/art)\s*/i, '');
+      prompt = prompt.replace(/^\s*(please\s+)?(can you\s+)?(generate|create|make|draw|paint|render|show me|dikhao|banao|bana do|bana de|chahiye)\s+/i, '');
+      prompt = prompt.replace(/\s+(ki\s+)?(photo|image|pic|tasveer|wallpaper|drawing)\s+(banao|bana do|bana de|karo|chahiye|dikhao)$/i, '');
+      prompt = prompt.replace(/\s+(banao|bana do|bana de|banaiye|karo|dikhao)$/i, '');
+      prompt = prompt.replace(/^(ek|a|an)\s+/i, '');
+      prompt = prompt.replace(/\s+(ki|ka|ke)\s+/gi, ' ');
+
+      // Common Hindi-to-English translations so AI generates accurate subjects
+      const dict = {
+        'billi': 'cat', 'billiya': 'cats', 'kutta': 'dog', 'kutte': 'dogs',
+        'sher': 'lion', 'baagh': 'tiger', 'haathi': 'elephant', 'ghoda': 'horse',
+        'chidiya': 'bird', 'gaadi': 'car', 'gadi': 'car', 'chashma': 'sunglasses',
+        'raat': 'night', 'barish': 'rain', 'pahad': 'mountains', 'samundar': 'ocean',
+        'ladka': 'boy', 'ladki': 'girl', 'bachha': 'child', 'suraj': 'sun',
+        'chand': 'moon', 'chandrama': 'moon', 'tare': 'stars', 'dost': 'friends',
+        'mandir': 'temple', 'gaon': 'village', 'shehar': 'city', 'khoobsurat': 'beautiful',
+        'mast': 'stunning', 'bada': 'huge', 'chota': 'cute little'
+      };
+
+      for (const [hi, en] of Object.entries(dict)) {
+        const re = new RegExp(`\\b${hi}\\b`, 'gi');
+        prompt = prompt.replace(re, en);
+      }
+
+      prompt = prompt.replace(/\s+/g, ' ').trim();
+      if (!prompt) prompt = "A stunning cyberpunk city with neon reflections";
+
+      // Append rich artistic keywords based on active style
+      if (style === 'photoreal') {
+        prompt += ", photorealistic, 8k resolution, highly detailed, dramatic studio lighting, sharp focus, masterpiece";
+      } else if (style === 'anime') {
+        prompt += ", anime aesthetic, Makoto Shinkai style, Studio Ghibli art, vibrant colors, detailed illustration, masterpiece";
+      } else if (style === '3d-pixar') {
+        prompt += ", 3D animated character, Disney Pixar render style, smooth textures, warm lighting, vibrant colors, 8k";
+      } else if (style === 'cyberpunk') {
+        prompt += ", futuristic cyberpunk, glowing neon lights, rain reflections, dark moody atmosphere, highly detailed, 8k";
+      } else {
+        prompt += ", high quality, highly detailed, photorealistic, sharp focus, vibrant colors, masterpiece";
+      }
+
+      return prompt;
     }
 
     function extractImagePrompt(str) {
-      let clean = str.replace(/^\s*(\/image|\/img|\/art)\s*/i, '');
-      clean = clean.replace(/^\s*(please\s+)?(can you\s+)?(generate|create|make|draw|paint|render|show me)\s+(an?\s+)?(ultra-hd\s+)?(4k\s+)?(hd\s+)?(cinematic\s+)?(photorealistic\s+)?(image|picture|photo|photograph|wallpaper|illustration|art|artwork|drawing|painting|portrait|sketch|render)?\s*(of\s+)?/i, '');
-      return clean.trim() || str;
+      return sanitizeAndEnhanceImagePrompt(str, typeof activeImageStyle !== 'undefined' ? activeImageStyle : 'natural');
     }
 
     // ================= CREATOR RECOGNITION (KUNAL TANDON) =================
@@ -1356,35 +1407,22 @@
       }, 8);
     }
 
-    async function renderGeminiImage(prompt) {
+    async function renderGeminiImage(rawPrompt) {
       trackUserUsage(currentUser?.email, 'image');
       const seed = Math.floor(Math.random() * 999999);
 
-      // 1. Calculate Dynamic Aspect Ratio Dimensions
-      let width = 1024;
-      let height = 1024;
+      // 1. Calculate Aspect Ratio Dimensions
+      let width = 1024, height = 1024;
       if (typeof activeImageRatio !== 'undefined') {
         if (activeImageRatio === '16:9') { width = 1280; height = 720; }
         else if (activeImageRatio === '9:16') { width = 720; height = 1280; }
       }
 
-      // 2. Apply Smart Art Style Enhancer
-      let enhancedPrompt = prompt;
-      if (typeof activeImageStyle !== 'undefined') {
-        if (activeImageStyle === 'photoreal') {
-          enhancedPrompt = `${prompt}, 8k resolution, ultra-detailed photorealistic portrait, masterpiece, sharp focus, professional photography, studio lighting, highly detailed`;
-        } else if (activeImageStyle === 'anime') {
-          enhancedPrompt = `${prompt}, masterpiece anime artwork, Makoto Shinkai style, Studio Ghibli aesthetic, vibrant anime colors, crisp line art, 8k`;
-        } else if (activeImageStyle === '3d-pixar') {
-          enhancedPrompt = `${prompt}, adorable 3D animated character render, Pixar Disney animation style, octane render, soft subsurface scattering, vibrant lighting`;
-        } else if (activeImageStyle === 'cyberpunk') {
-          enhancedPrompt = `${prompt}, cyberpunk aesthetic, glowing neon lights, futuristic city reflections, atmospheric moody lighting, octane render, 8k`;
-        }
-      }
-
-      // 3. Smart Negative Prompts (Automatic quality booster without user effort)
-      const negativeFilter = "ugly,deformed,bad anatomy,deformed fingers,extra limbs,blurry,low quality,watermark,signature,jpeg artifacts";
+      // 2. Sanitize and enhance prompt with English translation & artistic keywords
+      const currentStyle = typeof activeImageStyle !== 'undefined' ? activeImageStyle : 'natural';
+      const enhancedPrompt = sanitizeAndEnhanceImagePrompt(rawPrompt, currentStyle);
       const encoded = encodeURIComponent(enhancedPrompt);
+
       const cardId = `img-card-${seed}`;
       const loaderId = `img-loader-${seed}`;
       const imgId = `img-elem-${seed}`;
@@ -1396,26 +1434,26 @@
       div.innerHTML = `
         <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-0.5"></div>
         <div class="space-y-3 flex-1">
-          <p class="text-sm text-[#c4c7c5]">4K artwork render for: <em>"${escapeHtml(prompt)}"</em></p>
+          <p class="text-sm text-[#c4c7c5]">4K artwork render for: <em>"${escapeHtml(rawPrompt)}"</em></p>
           <div id="${cardId}" class="rounded-3xl overflow-hidden border border-white/10 bg-[#1e1f20] shadow-2xl relative min-h-[280px]">
             
             <!-- Skeleton Shimmer Loader -->
             <div id="${loaderId}" class="h-72 sm:h-80 w-full flex flex-col items-center justify-center gap-3 bg-[#18191a] text-[#8e918f] p-4 text-center">
               <div class="gemini-diamond-star !w-8 !h-8 animate-spin" style="animation-duration: 3s"></div>
-              <p class="text-xs font-semibold text-white">Rendering 4K Art with FLUX.1 Engine...</p>
+              <p class="text-xs font-semibold text-white">Rendering 4K Art with Kiro Vision Engine...</p>
               <p class="text-[10px] text-[#8e918f]">Synthesizing photorealistic details</p>
             </div>
 
             <!-- The Rendered Image -->
             <img 
               id="${imgId}" 
-              alt="${escapeHtml(prompt)}" 
+              alt="${escapeHtml(rawPrompt)}" 
               class="w-full max-h-[500px] object-cover hidden transition-opacity duration-300"
             />
 
             <!-- Download & Info Footer Bar -->
             <div class="p-3.5 bg-[#1e1f20] flex items-center justify-between border-t border-white/5">
-              <span class="text-xs text-[#8e918f] font-mono">${width} x ${height} • ${typeof activeImageRatio !== "undefined" ? activeImageRatio : "1:1"} • FLUX.1 4K</span>
+              <span class="text-xs text-[#8e918f] font-mono">${width} x ${height} • ${typeof activeImageRatio !== "undefined" ? activeImageRatio : "1:1"} • 4K Quality</span>
               <a id="${downloadBtnId}" href="#" target="_blank" class="px-4 py-1.5 rounded-full bg-white/10 pointer-events-none text-white/40 font-semibold text-xs transition-colors">
                 Rendering...
               </a>
@@ -1438,8 +1476,8 @@
           loaderEl.classList.add('hidden');
           imgEl.classList.remove('hidden');
           dlBtn.href = src;
-          dlBtn.download = `kiro_${seed}.jpg`;
-          dlBtn.innerText = "Download";
+          dlBtn.download = `kiro_art_${seed}.jpg`;
+          dlBtn.innerText = "Download 4K";
           dlBtn.className = "px-4 py-1.5 rounded-full bg-white text-black font-semibold text-xs hover:bg-[#e3e3e3] transition-colors";
           scrollDown();
         };
@@ -1451,65 +1489,58 @@
           <div class="space-y-2 text-center p-4">
             <span class="text-rose-400 text-lg">⚠️</span>
             <p class="text-xs text-rose-300 font-medium">${msg || 'Image generation limit or server busy.'}</p>
-            <button onclick="renderGeminiImage('${escapeHtml(prompt)}')" class="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white">Retry</button>
+            <button onclick="renderGeminiImage('${escapeHtml(rawPrompt)}')" class="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white">Retry</button>
           </div>
         `;
       }
 
-      // FLUX.1 Triple Engine Cascade: Try FLUX.1 first (highest quality), then Turbo, then Sana fallback
-      const models = ['flux', 'turbo', 'sana'];
-      let loaded = false;
+      // Stable Clean Generation (Zero 402, Zero malformed URLs)
+      const primaryUrl = `https://image.pollinations.ai/prompt/${encoded}?width=${width}&height=${height}&nologo=true&seed=${seed}`;
 
-      for (const m of models) {
-        if (loaded) break;
-        const url = `https://image.pollinations.ai/prompt/${encoded}?model=${m}&width=${width}&height=${height}&nologo=true&seed=${seed}&negative=${encodeURIComponent(negativeFilter)}`;
-        try {
-          const res = await fetch(url);
+      fetch(primaryUrl)
+        .then(res => {
           if (res.status === 200) {
-            const blob = await res.blob();
-            displayImage(URL.createObjectURL(blob));
-            loaded = true;
-            return;
+            return res.blob().then(blob => {
+              displayImage(URL.createObjectURL(blob));
+            });
+          } else if (res.status === 402) {
+            handleCooldown();
+          } else {
+            showError("Server busy. Click retry.");
           }
-        } catch(e) {
-          console.warn(`Model ${m} fetch error:`, e);
-        }
-      }
+        })
+        .catch(err => {
+          console.warn("Direct image fetch error, using direct image element fallback:", err);
+          displayImage(primaryUrl);
+        });
 
-      // If both models are in cooldown, show smart countdown timer and auto-retry
-      if (!loaded) {
-        loaderEl.innerHTML = `
-          <div class="space-y-2 text-center p-4">
-            <span class="text-2xl">⏳</span>
-            <p class="text-xs font-semibold text-amber-300">Free Server Cooldown</p>
-            <p class="text-[11px] text-[#8e918f]">Free server cooling down. Auto-retrying in <span id="cd-${seed}" class="text-white font-bold font-mono">15</span>s...</p>
-          </div>
-        `;
-        let cd = 15;
-        const timer = setInterval(async () => {
-          cd--;
-          const span = document.getElementById(`cd-${seed}`);
-          if (span) span.innerText = cd;
-          if (cd <= 0) {
+      function handleCooldown() {
+        let seconds = 8;
+        const timer = setInterval(() => {
+          if (!loaderEl) { clearInterval(timer); return; }
+          loaderEl.innerHTML = `
+            <div class="space-y-2 text-center p-4">
+              <span class="text-2xl">⏳</span>
+              <p class="text-xs font-semibold text-amber-300">Free Server Cooldown</p>
+              <p class="text-[11px] text-[#8e918f]">Ready in <span class="text-white font-bold">${seconds}s</span>... Will render automatically!</p>
+              <div class="w-48 mx-auto bg-white/10 rounded-full h-1 mt-2 overflow-hidden">
+                <div class="bg-amber-400 h-1 rounded-full transition-all duration-1000" style="width: ${(8 - seconds) * 12.5}%"></div>
+              </div>
+            </div>
+          `;
+          seconds--;
+          if (seconds < 0) {
             clearInterval(timer);
-            const retryUrl = `https://image.pollinations.ai/prompt/${encoded}?model=turbo&width=1024&height=1024&nologo=true&seed=${seed}`;
-            try {
-              const retryRes = await fetch(retryUrl);
-              if (retryRes.status === 200) {
-                const blob = await retryRes.blob();
-                displayImage(URL.createObjectURL(blob));
-              } else {
-                showError();
-              }
-            } catch(e) {
-              showError();
-            }
+            fetch(primaryUrl)
+              .then(r => r.blob())
+              .then(blob => displayImage(URL.createObjectURL(blob)))
+              .catch(() => displayImage(primaryUrl));
           }
         }, 1000);
       }
     }
 
-        // Multi-Model Fallback Chain for Gemini
+    // Multi-Model Fallback Chain for Gemini
     const GEMINI_MODELS = [
       'gemini-3.5-flash',
       'gemini-3.5-flash-lite',
