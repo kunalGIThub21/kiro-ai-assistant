@@ -942,6 +942,11 @@
     let activeChatId = null;
     let selectedChatItemId = null;
     let currentAttachedImage = null;
+    let isHinglishActive = localStorage.getItem('kivo_hinglish_mode') === 'true';
+    let isCodingActive = localStorage.getItem('kivo_coding_mode') === 'true';
+    let activeImageRatio = localStorage.getItem('kivo_image_ratio') || '1:1';
+    let activeImageStyle = localStorage.getItem('kivo_image_style') || 'natural';
+    let kivoUpdateParticleColors = null;
     const KIVO_CHATS_INDEX_KEY = 'kivo_active_threads_master';
     // Initialize User Session & KIVO Core Systems
     window.addEventListener('DOMContentLoaded', () => {
@@ -1811,8 +1816,9 @@
         removeEl(loaderId);
         appendBotResponse(answer);
       } catch (err) {
+        console.error("Chat engine execution error:", err);
         removeEl(loaderId);
-        appendBotResponse(`I have processed your query: "**${text}**". Everything is running smoothly.`);
+        appendBotResponse(`✦ **KIVO Neural Engine:** ${err.message || 'Something went wrong while processing your query. Please try again.'}`);
       } finally {
         isThinking = false;
       }
@@ -2060,10 +2066,10 @@
 
     // Multi-Model Fallback Chain for Gemini
     const GEMINI_MODELS = [
-      'gemini-3.5-flash',
       'gemini-3.5-flash-lite',
-      'gemini-flash-lite-latest',
       'gemini-3-flash-preview',
+      'gemini-flash-lite-latest',
+      'gemini-3.5-flash',
       'gemini-flash-latest'
     ];
 
@@ -2250,9 +2256,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       if (el) el.remove();
     }
 
-    function escapeHtml(s) {
-      return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
+    // Primary escapeHtml declared at top
 
         function formatMarkdown(s) {
       let h = escapeHtml(s);
