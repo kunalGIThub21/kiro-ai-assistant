@@ -924,6 +924,11 @@
 
   <!-- ================= APPLICATION ENGINE SCRIPT ================= -->
   <script>
+    function escapeHtml(s) {
+      if (s === null || s === undefined) return '';
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
     const BLOCKED_DOMAINS = [
       'tempmail.com', '10minutemail.com', 'mailinator.com', 'guerrillamail.com',
       'trashmail.com', 'yopmail.com', 'dispostable.com', 'sharklasers.com',
@@ -2620,7 +2625,8 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
 
     function applyTheme(theme) {
       const icon = document.getElementById('theme-toggle-icon');
-      if (theme === 'light') {
+      const isLight = theme === 'light';
+      if (isLight) {
         document.body.classList.add('light-theme');
         localStorage.setItem('kivo_theme', 'light');
         if (icon) icon.innerText = '☀️';
@@ -2628,6 +2634,9 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
         document.body.classList.remove('light-theme');
         localStorage.setItem('kivo_theme', 'dark');
         if (icon) icon.innerText = '🌙';
+      }
+      if (typeof kivoUpdateParticleColors === 'function') {
+        kivoUpdateParticleColors(isLight);
       }
     }
 
@@ -2659,6 +2668,8 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
     }
 
     // ================= 3D ANIMATED BACKGROUND (THREE.JS + FALLBACK) =================
+    let kivoUpdateParticleColors = null;
+
     function initKivo3DBackground() {
       const canvas = document.getElementById('kivo-3d-bg');
       if (!canvas) return;
@@ -2678,48 +2689,51 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 
         // 3D Glowing Particle Cloud
-        const particleCount = 450;
+        const particleCount = 480;
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
-
-        const cCyan = new THREE.Color('#00f2fe');
-        const cViolet = new THREE.Color('#6366f1');
-        const cSky = new THREE.Color('#38bdf8');
 
         for (let i = 0; i < particleCount; i++) {
           positions[i * 3] = (Math.random() - 0.5) * 600;
           positions[i * 3 + 1] = (Math.random() - 0.5) * 600;
           positions[i * 3 + 2] = (Math.random() - 0.5) * 400;
-
-          const mixed = Math.random() < 0.5 ? cCyan.clone().lerp(cViolet, Math.random()) : cSky.clone().lerp(cViolet, Math.random());
-          colors[i * 3] = mixed.r;
-          colors[i * 3 + 1] = mixed.g;
-          colors[i * 3 + 2] = mixed.b;
         }
 
         geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        const colorAttr = new THREE.BufferAttribute(colors, 3);
+        geometry.setAttribute('color', colorAttr);
 
-        // Circular smooth glowing texture
+        // Core Polyhedron
+        const coreGeo = new THREE.IcosahedronGeometry(75, 1);
+        const coreMat = new THREE.MeshBasicMaterial({
+          color: 0x4f46e5,
+          wireframe: true,
+          transparent: true,
+          opacity: 0.14
+        });
+        const cyberCore = new THREE.Mesh(coreGeo, coreMat);
+        scene.add(cyberCore);
+
+        // Texture
         const pCanvas = document.createElement('canvas');
         pCanvas.width = 32;
         pCanvas.height = 32;
         const pCtx = pCanvas.getContext('2d');
         const grad = pCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
         grad.addColorStop(0, 'rgba(255,255,255,1)');
-        grad.addColorStop(0.35, 'rgba(0,242,254,0.85)');
+        grad.addColorStop(0.35, 'rgba(255,255,255,0.85)');
         grad.addColorStop(1, 'rgba(0,0,0,0)');
         pCtx.fillStyle = grad;
         pCtx.fillRect(0, 0, 32, 32);
         const pTexture = new THREE.CanvasTexture(pCanvas);
 
         const material = new THREE.PointsMaterial({
-          size: 4.5,
+          size: 5.2,
           vertexColors: true,
           map: pTexture,
           transparent: true,
-          opacity: 0.75,
+          opacity: 0.85,
           blending: THREE.AdditiveBlending,
           depthWrite: false
         });
@@ -2727,18 +2741,30 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
         const particles = new THREE.Points(geometry, material);
         scene.add(particles);
 
-        // Floating 3D Geometric Polyhedron (Cyber Core) in background
-        const coreGeo = new THREE.IcosahedronGeometry(75, 1);
-        const coreMat = new THREE.MeshBasicMaterial({
-          color: 0x4f46e5,
-          wireframe: true,
-          transparent: true,
-          opacity: 0.12
-        });
-        const cyberCore = new THREE.Mesh(coreGeo, coreMat);
-        scene.add(cyberCore);
+        // COLOR THEME SWITCHER: Red for Light Mode, Blue/Cyan for Dark Mode
+        function updateParticleColors(isLight) {
+          const c1 = isLight ? new THREE.Color('#ef4444') : new THREE.Color('#00f2fe'); // Red vs Cyan
+          const c2 = isLight ? new THREE.Color('#dc2626') : new THREE.Color('#6366f1'); // Deep Red vs Violet
+          const c3 = isLight ? new THREE.Color('#f43f5e') : new THREE.Color('#38bdf8'); // Coral/Rose vs Sky Blue
 
-        // Subtle Mouse Parallax
+          for (let i = 0; i < particleCount; i++) {
+            const mixed = Math.random() < 0.5 ? c1.clone().lerp(c2, Math.random()) : c3.clone().lerp(c2, Math.random());
+            colors[i * 3] = mixed.r;
+            colors[i * 3 + 1] = mixed.g;
+            colors[i * 3 + 2] = mixed.b;
+          }
+          colorAttr.needsUpdate = true;
+          if (cyberCore) {
+            cyberCore.material.color.set(isLight ? 0xef4444 : 0x4f46e5);
+            cyberCore.material.opacity = isLight ? 0.08 : 0.14;
+          }
+        }
+
+        kivoUpdateParticleColors = updateParticleColors;
+        // Apply initial colors based on current theme
+        updateParticleColors(document.body.classList.contains('light-theme'));
+
+        // Mouse Parallax
         let mouseX = 0, mouseY = 0;
         let targetX = 0, targetY = 0;
         window.addEventListener('mousemove', (e) => {
