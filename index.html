@@ -1316,6 +1316,15 @@
             }
           }
         });
+
+        // Ensure bot reply is always present even if legacy chat had only user prompt
+        const hasBot = msgs.some(m => m.sender === 'bot');
+        if (!hasBot && msgs.length > 0) {
+          const lastUser = msgs[msgs.length - 1];
+          const query = lastUser ? lastUser.text : '';
+          const synthesized = `✦ **KIVO Neural Engine:** This conversation was recorded for: "**${escapeHtml(query)}**". All systems ready. What would you like to ask next?`;
+          appendBotResponse(synthesized, false, false);
+        }
       }
 
       scrollDownSmooth();
@@ -1334,17 +1343,18 @@
       const list = document.getElementById('messages-list');
       const div = document.createElement('div');
       div.className = "flex items-start gap-3.5 max-w-2xl";
-      const renderedHtml = typeof marked !== 'undefined' ? marked.parse(markdown) : escapeHtml(markdown);
+      const contentId = 'bot-msg-' + Math.random().toString(36).substring(2, 9);
+      const renderedHtml = typeof formatMarkdown === 'function' ? formatMarkdown(markdown) : escapeHtml(markdown);
       div.innerHTML = `
         <div class="gemini-diamond-star !w-6 !h-6 shrink-0 mt-0.5"></div>
         <div class="text-sm text-[#e3e3e3] leading-relaxed space-y-2.5 flex-1 select-text">
-          <div class="prose prose-invert text-sm max-w-none">${renderedHtml}</div>
-          <div class="flex items-center gap-2 pt-1 text-[#8e918f]">
-            <button onclick="copyMessageText(this)" class="hover:text-white p-1 rounded transition-colors text-xs flex items-center gap-1">
+          <div id="${contentId}">${renderedHtml}</div>
+          <div class="flex items-center gap-2 mt-2.5 pt-2 border-t border-white/5 opacity-80 hover:opacity-100 transition-opacity">
+            <button type="button" onclick="copyMessageText(this, '${contentId}')" class="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
               <span>Copy</span>
             </button>
-            <button onclick="readAloudText(this)" class="hover:text-white p-1 rounded transition-colors text-xs flex items-center gap-1">
+            <button type="button" onclick="readAloudText('${contentId}')" class="flex items-center gap-1 px-2.5 py-1 text-xs rounded-lg bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
               <span>Listen</span>
             </button>
@@ -1768,10 +1778,20 @@
       return id;
     }
 
-    function appendBotResponse(markdown) {
+    function appendBotResponse(markdown, isError = false, skipSave = false) {
       const list = document.getElementById('messages-list');
       const div = document.createElement('div');
       div.className = "flex items-start gap-3.5 max-w-2xl";
+
+      // PERSIST BOT MESSAGE IN ACTIVE CHAT
+      if (!skipSave && typeof saveMessageToActiveChat === 'function') {
+        saveMessageToActiveChat({
+          sender: 'bot',
+          text: markdown,
+          isError: !!isError,
+          time: Date.now()
+        });
+      }
       
       const contentId = 'bot-msg-' + Date.now();
       div.innerHTML = `
