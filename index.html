@@ -1402,7 +1402,7 @@
             <!-- Skeleton Shimmer Loader -->
             <div id="${loaderId}" class="h-72 sm:h-80 w-full flex flex-col items-center justify-center gap-3 bg-[#18191a] text-[#8e918f] p-4 text-center">
               <div class="gemini-diamond-star !w-8 !h-8 animate-spin" style="animation-duration: 3s"></div>
-              <p class="text-xs font-semibold text-white">Rendering 4K Art with Kiro Vision...</p>
+              <p class="text-xs font-semibold text-white">Rendering 4K Art with FLUX.1 Engine...</p>
               <p class="text-[10px] text-[#8e918f]">Synthesizing photorealistic details</p>
             </div>
 
@@ -1415,7 +1415,7 @@
 
             <!-- Download & Info Footer Bar -->
             <div class="p-3.5 bg-[#1e1f20] flex items-center justify-between border-t border-white/5">
-              <span class="text-xs text-[#8e918f] font-mono">${width} x ${height} • ${typeof activeImageRatio !== "undefined" ? activeImageRatio : "1:1"} • 4K Engine</span>
+              <span class="text-xs text-[#8e918f] font-mono">${width} x ${height} • ${typeof activeImageRatio !== "undefined" ? activeImageRatio : "1:1"} • FLUX.1 4K</span>
               <a id="${downloadBtnId}" href="#" target="_blank" class="px-4 py-1.5 rounded-full bg-white/10 pointer-events-none text-white/40 font-semibold text-xs transition-colors">
                 Rendering...
               </a>
@@ -1456,8 +1456,8 @@
         `;
       }
 
-      // Dual Engine Cascade: Try Turbo first, then Sana fallback immediately
-      const models = ['turbo', 'sana'];
+      // FLUX.1 Triple Engine Cascade: Try FLUX.1 first (highest quality), then Turbo, then Sana fallback
+      const models = ['flux', 'turbo', 'sana'];
       let loaded = false;
 
       for (const m of models) {
