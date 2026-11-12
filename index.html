@@ -1251,6 +1251,22 @@
     }
 
     // Chat History & Popovers
+    
+    function saveChatHistory(firstPrompt) {
+      if (!activeChatId) {
+        activeChatId = 'chat_' + Date.now();
+      }
+      const key = getUserChatsStorageKey();
+      const chats = JSON.parse(localStorage.getItem(key) || '[]');
+      const title = firstPrompt.length > 34 ? firstPrompt.substring(0, 34) + '...' : firstPrompt;
+      const existing = chats.find(c => String(c.id) === String(activeChatId));
+      if (!existing) {
+        chats.unshift({ id: activeChatId, title, pinned: false, createdAt: Date.now() });
+        localStorage.setItem(key, JSON.stringify(chats.slice(0, 40)));
+      }
+      loadUserPrivateChats();
+    }
+
     function getUserChatsStorageKey() {
       return currentUser ? `kivo_chats_${currentUser.email}` : 'kivo_chats_guest';
     }
@@ -1285,10 +1301,9 @@
         const chats = JSON.parse(localStorage.getItem(getUserChatsStorageKey()) || '[]');
         const target = chats.find(c => String(c.id) === String(id));
         const title = target ? target.title : 'Conversation';
-        const infoDiv = document.createElement('div');
-        infoDiv.className = "text-center py-8 text-xs text-gray-400";
-        infoDiv.innerHTML = `<span class="px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">✦ Chat: ${escapeHtml(title)}</span>`;
-        list.appendChild(infoDiv);
+        // Render prompt and response so past conversations never appear blank
+        appendUserMessage(title, null, false);
+        appendBotResponse(`✦ **KIVO Neural Engine:** Ready to continue our session on: "**${escapeHtml(title)}**". How can I assist you further?`, false, false);
       } else {
         msgs.forEach(msg => {
           if (msg.sender === 'user') {
@@ -1638,8 +1653,16 @@
       document.getElementById('messages-list').classList.remove('hidden');
       document.getElementById('bottom-dock').classList.remove('hidden');
 
+      // Ensure active conversation ID exists
+      if (!activeChatId) {
+        activeChatId = 'chat_' + Date.now();
+      }
       saveChatHistory(text);
-      trackUserUsage(currentUser?.email, 'chat');
+
+      if (typeof trackUserUsage === 'function') {
+        trackUserUsage(currentUser?.email, 'chat');
+      }
+
       const attachedImgCopy = currentAttachedImage ? { ...currentAttachedImage } : null;
       clearAttachedImage('hero');
       clearAttachedImage('dock');
