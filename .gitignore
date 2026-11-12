@@ -1,8 +1,8 @@
 # Environment secrets
 .env
 *.env
-kiro-mobile/.env
-kiro-web/config.js
+kivo-mobile/.env
+kivo-web/config.js
 
 # Dependencies & Build artifacts
 node_modules/
