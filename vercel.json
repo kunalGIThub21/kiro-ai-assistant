@@ -1,7 +1,3 @@
 {
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/", "destination": "/kiro-web/index.html" },
-    { "source": "/(.*)", "destination": "/kiro-web/$1" }
-  ]
+  "cleanUrls": true
 }
