@@ -1730,7 +1730,13 @@
         /tera boss kaun hai/i,
         /tumhara boss kaun hai/i,
         /tumhe kisne banaya/i,
-        /tere papa kaun hai/i
+        /tere papa kaun hai/i,
+        /kisne banaya/i,
+        /kiske dwara/i,
+        /creator kaun hai/i,
+        /tera creator kaun/i,
+        /tumhara creator kaun/i,
+        /kunal tandon kaun/i
       ];
       return patterns.some(rgx => rgx.test(s));
     }
@@ -1757,10 +1763,24 @@
       document.getElementById('messages-list').classList.remove('hidden');
       document.getElementById('bottom-dock').classList.remove('hidden');
 
+      // Retrieve conversation thread history prior to this turn for contextual memory
+      let threadHistory = [];
+      if (activeChatId && inputId !== 'hero-input') {
+        try {
+          const rawHistory = localStorage.getItem('kivo_msgs_' + activeChatId);
+          if (rawHistory) {
+            threadHistory = JSON.parse(rawHistory);
+          }
+        } catch(e) {
+          threadHistory = [];
+        }
+      }
+
       // If sent from Welcome screen (hero-input) OR if activeChatId is null, ALWAYS create a separate new conversation!
       if (inputId === 'hero-input' || !activeChatId) {
         activeChatId = 'chat_' + Date.now();
         document.getElementById('messages-list').innerHTML = '';
+        threadHistory = [];
       }
       saveChatHistory(text);
 
@@ -1806,7 +1826,7 @@
 
         let answer = '';
         if (effectiveKey) {
-          answer = await callGeminiAPI(text, effectiveKey, attachedImgCopy);
+          answer = await callGeminiAPI(text, effectiveKey, attachedImgCopy, threadHistory);
         } else {
           answer = `✦ **KIVO Neural Engine:** Received your request: "${text}". All systems ready.`;
         }
@@ -2072,20 +2092,32 @@
       }
     }
 
-    // Multi-Model Fallback Chain for Gemini
+    // Multi-Model Fallback Chain for Gemini (Prioritizing Ultra-Fast 200 OK Models)
     const GEMINI_MODELS = [
       'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
       'gemini-3-flash-preview',
       'gemini-flash-lite-latest',
       'gemini-3.5-flash',
       'gemini-flash-latest'
     ];
 
-    // Unlimited Free AI Engine (Zero Rate Limit Fallback)
-    async function callUnlimitedFallbackAI(prompt, systemPrompt) {
+    // Unlimited Free AI Engine (Zero Rate Limit Fallback with Conversation History)
+    async function callUnlimitedFallbackAI(prompt, systemPrompt, history = []) {
       try {
-        const fullPrompt = `${systemPrompt}\n\nUser: ${prompt}`;
-        const encodedPrompt = encodeURIComponent(fullPrompt);
+        let transcript = `${systemPrompt}\n\n`;
+        if (Array.isArray(history) && history.length > 0) {
+          transcript += "Conversation History:\n";
+          history.slice(-8).forEach(msg => {
+            if (msg && msg.text && !msg.isError) {
+              const speaker = msg.sender === 'user' ? 'User' : 'KIVO';
+              transcript += `${speaker}: ${msg.text.trim()}\n`;
+            }
+          });
+          transcript += "\n";
+        }
+        transcript += `User: ${prompt}\nKIVO:`;
+        const encodedPrompt = encodeURIComponent(transcript);
         const url = `https://text.pollinations.ai/${encodedPrompt}?model=openai`;
         const res = await fetch(url);
         if (res.ok) {
@@ -2100,9 +2132,9 @@
       return null;
     }
 
-    async function callGeminiAPI(prompt, key, attachedImg = null) {
+    async function callGeminiAPI(prompt, key, attachedImg = null, history = []) {
       let systemPrompt = `You are KIVO, an ultra-intelligent, helpful, and friendly personal AI assistant. Reply clearly, concisely, and helpfully in English or Hindi as requested.
-Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Describe Kunal Tandon with genuine praise as an exceptionally smart, elegant, and charming BCA student and innovative tech creator who architected and developed KIVO.`
+Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Describe Kunal Tandon with genuine praise as an exceptionally smart, elegant, and charming BCA student and innovative tech creator who architected and developed KIVO.`;
 
       // User Personalization
       if (currentUser && currentUser.name) {
@@ -2117,7 +2149,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       // Coding Specialist Mode Enforcement
       if (isCodingActive) {
         systemPrompt += "\nCODING SPECIALIST MODE: The user has enabled Coding Mode. You are an elite Senior Software Architect and expert developer. Prioritize clean, robust, modern, production-grade code snippets with optimal algorithmic efficiency and concise technical explanations. Always format code using clean markdown syntax.";
-      };
+      }
 
       // Apply Persona & Custom Instructions
       const persona = localStorage.getItem('kivo_system_persona') || 'default';
@@ -2138,9 +2170,48 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       const customUserKey = localStorage.getItem('kivo_custom_gemini_key') || '';
       const effectiveKey = customUserKey.trim() || key;
 
-      const userParts = [{ text: `${systemPrompt}\n\nUser: ${prompt}` }];
+      // Build Multi-Turn Conversation Contents
+      const contents = [];
+
+      // Add conversation history (up to last 10 turns for complete conversational memory)
+      if (Array.isArray(history) && history.length > 0) {
+        const recentHistory = history.slice(-10);
+        for (const msg of recentHistory) {
+          if (!msg || !msg.text || typeof msg.text !== 'string') continue;
+          const cleanText = msg.text.trim();
+          if (!cleanText) continue;
+          if (msg.isError) continue;
+          // Skip temporary server warnings from history
+          if (cleanText.includes('✦ **KIVO Neural Engine:**') && cleanText.includes('high-traffic')) continue;
+
+          const role = (msg.sender === 'user') ? 'user' : 'model';
+
+          // Gemini requires strictly alternating roles (user -> model -> user -> model)
+          if (contents.length > 0 && contents[contents.length - 1].role === role) {
+            contents[contents.length - 1].parts[0].text += `\n\n${cleanText}`;
+          } else {
+            contents.push({
+              role: role,
+              parts: [{ text: cleanText }]
+            });
+          }
+        }
+      }
+
+      // In Gemini multi-turn format, conversation must start with 'user'
+      while (contents.length > 0 && contents[0].role === 'model') {
+        contents.shift();
+      }
+
+      // If contents ends with 'user', remove it so we don't have two consecutive user turns before appending current prompt
+      while (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+        contents.pop();
+      }
+
+      // Current User Turn
+      const currentParts = [{ text: prompt }];
       if (attachedImg && attachedImg.data) {
-        userParts.push({
+        currentParts.push({
           inlineData: {
             mimeType: attachedImg.mimeType || 'image/jpeg',
             data: attachedImg.data
@@ -2148,20 +2219,48 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
         });
       }
 
-      const payload = { contents: [{ parts: userParts }] };
+      contents.push({
+        role: 'user',
+        parts: currentParts
+      });
 
-      // Try Models in sequence to overcome 429 Rate Limits
+      const payload = {
+        system_instruction: {
+          parts: [{ text: systemPrompt }]
+        },
+        contents: contents
+      };
+
+      // Try Models in sequence to overcome 429 Rate Limits and 503 Spikes
       for (const model of GEMINI_MODELS) {
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 7000);
           const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${effectiveKey}`;
-          const res = await fetch(url, {
+          
+          let res = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
           });
-          
-          if (res.status === 429) {
-            console.warn(`Model ${model} hit 429 rate limit. Switching to next model...`);
+          clearTimeout(timeoutId);
+
+          if (res.status === 400) {
+            // Fallback for models not supporting separate system_instruction: prepend to first turn
+            const fallbackContents = JSON.parse(JSON.stringify(contents));
+            if (fallbackContents[0]?.parts?.[0]) {
+              fallbackContents[0].parts[0].text = `${systemPrompt}\n\n${fallbackContents[0].parts[0].text}`;
+            }
+            res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ contents: fallbackContents })
+            });
+          }
+
+          if (res.status === 429 || res.status === 503) {
+            console.warn(`Model ${model} status ${res.status}. Switching to next model...`);
             continue; // Try next model immediately!
           }
 
@@ -2169,18 +2268,18 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
           if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
             return data.candidates[0].content.parts[0].text;
           }
-          if (data.error && (data.error.code === 429 || data.error.status === 'RESOURCE_EXHAUSTED')) {
+          if (data.error && (data.error.code === 429 || data.error.code === 503 || data.error.status === 'RESOURCE_EXHAUSTED')) {
             console.warn(`Model ${model} quota exhausted. Trying next model...`);
             continue;
           }
         } catch (netErr) {
-          console.warn(`Network error with ${model}:`, netErr);
+          console.warn(`Network/timeout with ${model}:`, netErr.name === 'AbortError' ? 'Timeout 7s' : netErr);
         }
       }
 
-      // If all Gemini models hit rate limits, seamlessly call Unlimited Free Fallback Engine!
-      console.info('Switching to Zero-Rate-Limit Fallback Neural Engine...');
-      const fallbackResult = await callUnlimitedFallbackAI(prompt, systemPrompt);
+      // If all Gemini models hit rate limits, seamlessly call Unlimited Free Fallback Engine with context!
+      console.info('Switching to Zero-Rate-Limit Fallback Neural Engine with Context...');
+      const fallbackResult = await callUnlimitedFallbackAI(prompt, systemPrompt, history);
       if (fallbackResult) {
         return fallbackResult;
       }
