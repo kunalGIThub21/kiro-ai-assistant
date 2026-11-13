@@ -219,6 +219,24 @@
       100% { transform: translateY(-4px) scale(1.05); filter: drop-shadow(0 0 18px rgba(0, 242, 254, 0.75)) drop-shadow(0 0 25px rgba(236, 72, 153, 0.4)); }
     }
 
+    /* KIVO Rotating Voice Assistant Brand Logo */
+    @keyframes kivoLogoSpin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .kivo-voice-spinning-logo {
+      animation: kivoLogoSpin 1.15s linear infinite !important;
+      filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.9)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.6)) !important;
+      transform-origin: center center;
+      display: inline-block;
+      pointer-events: none;
+    }
+
     /* Apple-Style Frosted Glassmorphism */
     body.mobile-app-root {
       background: radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
@@ -593,15 +611,10 @@
                 </div>
               </div>
 
-              <!-- Mic Button with Waveform Animation -->
-              <button type="button" id="hero-mic-btn" onclick="toggleVoice('hero-input')" title="Voice Dictation" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-all shrink-0">
+              <!-- Hero Mic Button with Rotating KIVO Brand Logo -->
+              <button type="button" id="hero-mic-btn" onclick="toggleVoice('hero-input')" title="Voice Dictation" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-all shrink-0 relative overflow-hidden">
                 <svg id="hero-mic-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                <div id="hero-waveform" class="hidden items-center gap-0.5 h-4 px-1">
-                  <span class="wave-bar wave-bar-1"></span>
-                  <span class="wave-bar wave-bar-2"></span>
-                  <span class="wave-bar wave-bar-3"></span>
-                  <span class="wave-bar wave-bar-4"></span>
-                </div>
+                <div id="hero-voice-logo" class="hidden kivo-logo-gem kivo-voice-spinning-logo !w-[22px] !h-[22px]"></div>
               </button>
 
               <!-- Send Button -->
@@ -731,15 +744,10 @@
             class="flex-1 bg-transparent px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
           />
 
-          <!-- Dock Mic Button with Waveform Animation -->
-          <button type="button" id="dock-mic-btn" onclick="toggleVoice('dock-input')" title="Voice Dictation" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-all shrink-0">
+          <!-- Dock Mic Button with Rotating KIVO Brand Logo -->
+          <button type="button" id="dock-mic-btn" onclick="toggleVoice('dock-input')" title="Voice Dictation" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-all shrink-0 relative overflow-hidden">
             <svg id="dock-mic-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-            <div id="dock-waveform" class="hidden items-center gap-0.5 h-4 px-1">
-              <span class="wave-bar wave-bar-1"></span>
-              <span class="wave-bar wave-bar-2"></span>
-              <span class="wave-bar wave-bar-3"></span>
-              <span class="wave-bar wave-bar-4"></span>
-            </div>
+            <div id="dock-voice-logo" class="hidden kivo-logo-gem kivo-voice-spinning-logo !w-[22px] !h-[22px]"></div>
           </button>
 
           <button type="submit" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all shrink-0">
@@ -2447,9 +2455,32 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       updateModesUI();
     }
 
-    // ================= ENHANCED VOICE WITH GOOGLE 4-COLOR WAVEFORM & MANUAL SEND =================
+    // ================= ENHANCED VOICE WITH ROTATING KIVO BRAND LOGO =================
     let activeSpeechRecognition = null;
     let isRecordingVoice = false;
+
+    function stopVoiceUI(id) {
+      isRecordingVoice = false;
+      activeSpeechRecognition = null;
+      const isH = id === 'hero-input';
+      const mBtn = document.getElementById(isH ? 'hero-mic-btn' : 'dock-mic-btn');
+      const mIcon = document.getElementById(isH ? 'hero-mic-icon' : 'dock-mic-icon');
+      const vLogo = document.getElementById(isH ? 'hero-voice-logo' : 'dock-voice-logo');
+
+      if (mIcon) mIcon.classList.remove('hidden');
+      if (vLogo) {
+        vLogo.classList.add('hidden');
+        vLogo.classList.remove('inline-block');
+      }
+      if (mBtn) mBtn.classList.remove('bg-cyan-500/20', 'ring-2', 'ring-cyan-400', 'shadow-[0_0_15px_rgba(0,242,254,0.45)]', 'bg-white/10', 'ring-1', 'ring-blue-400');
+      if (typeof updateModesUI === 'function') {
+        updateModesUI();
+      }
+      const inp = document.getElementById(id);
+      if (inp) {
+        inp.placeholder = isH ? "Ask KIVO anything, brainstorm ideas, or type 'Generate an image of...'" : "Ask KIVO or type 'Generate an image of...'";
+      }
+    }
 
     function toggleVoice(targetId) {
       const input = document.getElementById(targetId);
@@ -2464,7 +2495,7 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
       const isHero = targetId === 'hero-input';
       const micBtn = document.getElementById(isHero ? 'hero-mic-btn' : 'dock-mic-btn');
       const micIcon = document.getElementById(isHero ? 'hero-mic-icon' : 'dock-mic-icon');
-      const waveForm = document.getElementById(isHero ? 'hero-waveform' : 'dock-waveform');
+      const voiceLogo = document.getElementById(isHero ? 'hero-voice-logo' : 'dock-voice-logo');
 
       if (isRecordingVoice && activeSpeechRecognition) {
         try {
@@ -2485,11 +2516,11 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
           isRecordingVoice = true;
           input.placeholder = "🎙️ Listening... Speak naturally...";
           if (micIcon) micIcon.classList.add('hidden');
-          if (waveForm) {
-            waveForm.classList.remove('hidden');
-            waveForm.classList.add('flex');
+          if (voiceLogo) {
+            voiceLogo.classList.remove('hidden');
+            voiceLogo.classList.add('inline-block');
           }
-          if (micBtn) micBtn.classList.add('bg-white/10', 'ring-1', 'ring-blue-400');
+          if (micBtn) micBtn.classList.add('bg-cyan-500/20', 'ring-2', 'ring-cyan-400', 'shadow-[0_0_15px_rgba(0,242,254,0.45)]');
         };
 
         r.onresult = (e) => {
@@ -2515,47 +2546,12 @@ Creator Knowledge: Your creator, father, and visionary boss is Kunal Tandon. Des
           input.focus();
         };
 
-        function stopVoiceUI(id) {
-          isRecordingVoice = false;
-          activeSpeechRecognition = null;
-          const isH = id === 'hero-input';
-          const mBtn = document.getElementById(isH ? 'hero-mic-btn' : 'dock-mic-btn');
-          const mIcon = document.getElementById(isH ? 'hero-mic-icon' : 'dock-mic-icon');
-          const wForm = document.getElementById(isH ? 'hero-waveform' : 'dock-waveform');
-
-          if (mIcon) mIcon.classList.remove('hidden');
-          if (wForm) {
-            wForm.classList.add('hidden');
-            wForm.classList.remove('flex');
-          }
-          if (mBtn) mBtn.classList.remove('bg-white/10', 'ring-1', 'ring-blue-400');
-          if (typeof updateModesUI === 'function') {
-            updateModesUI();
-          }
-        }
-
         r.start();
       } catch (err) {
         console.error("Failed to start speech recognition:", err);
         stopVoiceUI(targetId);
       }
     }
-
-    function toggleFilterOnly() {
-      const q = prompt("Filter conversations by keyword:");
-      if (q !== null && q.trim()) {
-        const query = q.trim().toLowerCase();
-        const items = document.querySelectorAll('#history-list > div, #history-list li');
-        items.forEach(item => {
-          const match = item.innerText.toLowerCase().includes(query);
-          item.style.display = match ? '' : 'none';
-        });
-      } else if (q !== null) {
-        const items = document.querySelectorAll('#history-list > div, #history-list li');
-        items.forEach(item => item.style.display = '');
-      }
-    }
-
 
     // ================= IMAGE UPLOAD & VISION LOGIC =================
     // currentAttachedImage declared at top
