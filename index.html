@@ -1219,6 +1219,21 @@
       document.getElementById('dropdown-user-email').innerText = user.email;
 
       loadUserPrivateChats();
+
+      // Deep Linking & Automated Showcase Navigation Support
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoChat = urlParams.get('chat');
+        if (autoChat && typeof openConversation === 'function') {
+          setTimeout(() => openConversation(autoChat), 150);
+        }
+        const autoModal = urlParams.get('modal');
+        if (autoModal === 'admin' && typeof openAdminPanel === 'function') {
+          setTimeout(() => openAdminPanel(), 200);
+        } else if (autoModal === 'logo' && typeof openLogoModal === 'function') {
+          setTimeout(() => openLogoModal(), 200);
+        }
+      } catch(e) {}
     }
 
     function handleSignOut() {
