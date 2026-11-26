@@ -1012,7 +1012,11 @@ function stopVoiceUI(id) {
   activeSpeechRecognition = null;
   const isH = id === 'hero-input';
   document.getElementById(isH ? 'hero-mic-icon' : 'dock-mic-icon')?.classList.remove('hidden');
-  document.getElementById(isH ? 'hero-voice-logo' : 'dock-voice-logo')?.classList.add('hidden');
+  const vLogo = document.getElementById(isH ? 'hero-voice-logo' : 'dock-voice-logo');
+  if (vLogo) {
+    vLogo.classList.add('hidden');
+    vLogo.classList.remove('inline-block');
+  }
   document.getElementById(isH ? 'hero-mic-btn' : 'dock-mic-btn')?.classList.remove('bg-cyan-500/20', 'ring-2', 'ring-cyan-400');
 }
 
