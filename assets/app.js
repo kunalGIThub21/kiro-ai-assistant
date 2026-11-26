@@ -354,7 +354,7 @@ function loadUserPrivateChats() {
 
     const menuBtn = document.createElement('button');
     menuBtn.type = 'button';
-    menuBtn.className = 'opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-[#8e918f] hover:text-white transition-opacity';
+    menuBtn.className = 'opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-[#8e918f] hover:text-white transition-opacity';
     menuBtn.textContent = '⋯';
     menuBtn.addEventListener('click', e => openChatPopover(e, String(chat.id)));
 
@@ -431,7 +431,7 @@ function formatMarkdown(s) {
     return `<a href="${escapeHtml(safe)}" target="_blank" rel="noopener noreferrer nofollow" class="text-cyan-400 underline hover:text-cyan-300">${label}</a>`;
   });
 
-  h = h.replace(/&#96;([^&#96;\n]+)&#96;/g, '<code class="px-1.5 py-0.5 rounded-md bg-white/10 text-cyan-300 font-mono text-xs border border-white/5">$1</code>');
+  h = h.replace(/&#96;((?:(?!&#96;)[^\n])+)&#96;/g, '<code class="px-1.5 py-0.5 rounded-md bg-white/10 text-cyan-300 font-mono text-xs border border-white/5">$1</code>');
   h = h.replace(/^### (.*$)/gim, '<h3 class="text-base font-bold text-white mt-3 mb-1">$1</h3>');
   h = h.replace(/^## (.*$)/gim, '<h2 class="text-lg font-bold text-white mt-4 mb-1.5">$1</h2>');
   h = h.replace(/^# (.*$)/gim, '<h1 class="text-xl font-extrabold text-white mt-5 mb-2">$1</h1>');
@@ -454,7 +454,7 @@ function appendUserMessage(text, attachedImg = null, skipSave = false) {
   wrapper.className = 'flex justify-end';
 
   const bubble = document.createElement('div');
-  bubble.className = 'bg-gradient-to-r from-blue-600/30 to-indigo-600/30 backdrop-blur-md text-[#e3e3e3] rounded-3xl rounded-tr-xs px-5 py-3 max-w-xl text-sm leading-relaxed border border-white/10 font-normal shadow-md';
+  bubble.className = 'user-msg-bubble bg-gradient-to-r from-blue-600/30 to-indigo-600/30 backdrop-blur-md text-[#e3e3e3] rounded-3xl rounded-tr-xs px-4 sm:px-5 py-3 max-w-[85%] sm:max-w-xl text-sm leading-relaxed border border-white/10 font-normal shadow-md';
 
   if (attachedImg && attachedImg.dataUrl) {
     const safeSrc = sanitizeUrl(attachedImg.dataUrl);
@@ -802,7 +802,12 @@ async function submitMessage(e, inputId) {
   }
 
   if (isImagePrompt(text)) {
-    await renderGeminiImage(text);
+    isThinking = true;
+    try {
+      await renderGeminiImage(text);
+    } finally {
+      isThinking = false;
+    }
     return;
   }
 
@@ -823,6 +828,7 @@ async function submitMessage(e, inputId) {
       hinglish: isHinglishActive,
       coding: isCodingActive,
       persona,
+      tier: currentTier,
       customInstructions,
       history: threadHistory.map(m => ({ sender: m.sender, text: String(m.text || '').slice(0, 6000) }))
     };
@@ -955,6 +961,14 @@ function updateModesUI() {
       el.className = isHinglishActive ? 'font-bold text-emerald-400' : 'font-bold text-gray-400';
     }
   });
+  ['hero-hinglish-btn', 'dock-hinglish-btn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.classList.toggle('border-emerald-500/40', isHinglishActive);
+    btn.classList.toggle('bg-emerald-500/10', isHinglishActive);
+    btn.classList.toggle('border-white/10', !isHinglishActive);
+  });
+
   ['hero-coding-status', 'dock-coding-status'].forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -962,6 +976,26 @@ function updateModesUI() {
       el.className = isCodingActive ? 'font-bold text-indigo-400' : 'font-bold text-gray-400';
     }
   });
+  ['hero-coding-btn', 'dock-coding-btn'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    btn.classList.toggle('border-indigo-500/40', isCodingActive);
+    btn.classList.toggle('bg-indigo-500/10', isCodingActive);
+    btn.classList.toggle('border-white/10', !isCodingActive);
+  });
+
+  let ph = "Ask KIVO or type 'Generate an image of...'";
+  if (isCodingActive && isHinglishActive) {
+    ph = 'Hinglish mein coding sawal poochiye...';
+  } else if (isCodingActive) {
+    ph = 'Ask code, debugging, or architecture...';
+  } else if (isHinglishActive) {
+    ph = 'Hinglish mein kuch bhi poochiye...';
+  }
+  const hi = document.getElementById('hero-input');
+  const di = document.getElementById('dock-input');
+  if (hi && !isRecordingVoice) hi.placeholder = ph;
+  if (di && !isRecordingVoice) di.placeholder = ph;
 }
 
 function handleImageSelect(event, source) {
@@ -1450,12 +1484,36 @@ function bindEvents() {
   }
 }
 
+function setupMobileViewport() {
+  const setHeight = () => {
+    const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty('--vvh', `${vh}px`);
+  };
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', setHeight, { passive: true });
+    window.visualViewport.addEventListener('scroll', setHeight, { passive: true });
+  }
+  window.addEventListener('resize', setHeight, { passive: true });
+  setHeight();
+}
+
 window.addEventListener('DOMContentLoaded', () => {
+  setupMobileViewport();
   applyTheme(localStorage.getItem('kivo_theme') || 'dark');
   initKivo3DBackground();
   updateModesUI();
   updateImageControlsUI();
   bindEvents();
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.getElementById('settings-modal')?.classList.add('hidden');
+      document.getElementById('admin-modal')?.classList.add('hidden');
+      document.getElementById('chat-item-popover')?.classList.add('hidden');
+      document.getElementById('model-dropdown-menu')?.classList.add('hidden');
+      document.getElementById('user-dropdown')?.classList.add('hidden');
+    }
+  });
 
   const personaSaved = localStorage.getItem('kivo_system_persona');
   const pSelect = document.getElementById('setting-persona-select');
@@ -1464,17 +1522,22 @@ window.addEventListener('DOMContentLoaded', () => {
   const instEl = document.getElementById('setting-custom-instructions');
   if (instEl && instSaved) instEl.value = instSaved;
 
-  setTimeout(() => {
-    const splash = document.getElementById('kivo-splash-screen');
-    const content = document.getElementById('kivo-splash-content');
-    if (splash && content) {
-      content.style.transition = 'transform 0.9s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.8s ease-out';
-      content.style.transform = 'scale(1.15)';
-      splash.style.transition = 'opacity 0.9s ease-out';
-      splash.style.opacity = '0';
-      setTimeout(() => { splash.style.display = 'none'; }, 950);
+  const splash = document.getElementById('kivo-splash-screen');
+  const content = document.getElementById('kivo-splash-content');
+  if (splash && content) {
+    if (sessionStorage.getItem('kivo_splashed')) {
+      splash.style.display = 'none';
+    } else {
+      sessionStorage.setItem('kivo_splashed', '1');
+      setTimeout(() => {
+        content.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease-out';
+        content.style.transform = 'scale(1.08)';
+        splash.style.transition = 'opacity 0.45s ease-out';
+        splash.style.opacity = '0';
+        setTimeout(() => { splash.style.display = 'none'; }, 450);
+      }, 450);
     }
-  }, 1600);
+  }
 
   restoreServerSession();
 });

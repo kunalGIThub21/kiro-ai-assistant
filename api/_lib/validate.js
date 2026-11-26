@@ -5,6 +5,7 @@ const BLOCKED_DOMAINS = new Set([
 ]);
 
 const ALLOWED_PERSONAS = new Set(['default', 'architect', 'visionary', 'executive']);
+const ALLOWED_TIERS = new Set(['fast', 'pro', 'ultimate']);
 const ALLOWED_RATIOS = new Set(['1:1', '16:9', '9:16']);
 const ALLOWED_STYLES = new Set(['natural', 'photoreal', 'anime', '3d-pixar', 'cyberpunk']);
 const ALLOWED_IMAGE_MIMES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
@@ -65,6 +66,7 @@ function validateChatInput(body) {
   const hinglish = Boolean(body?.hinglish);
   const coding = Boolean(body?.coding);
   const persona = ALLOWED_PERSONAS.has(body?.persona) ? body.persona : 'default';
+  const tier = ALLOWED_TIERS.has(body?.tier) ? body.tier : 'pro';
   const customInstructions = stripControlChars(body?.customInstructions || '', true).trim().slice(0, 500);
 
   const history = [];
@@ -94,7 +96,7 @@ function validateChatInput(body) {
 
   return {
     ok: true,
-    value: { prompt, hinglish, coding, persona, customInstructions, history, attachedImage }
+    value: { prompt, hinglish, coding, persona, tier, customInstructions, history, attachedImage }
   };
 }
 

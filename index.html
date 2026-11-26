@@ -204,7 +204,7 @@
   </div>
 
   <!-- ================= MAIN STAGE ================= -->
-  <div class="flex-1 flex flex-col h-full relative overflow-hidden bg-transparent z-10">
+  <div class="flex-1 min-w-0 w-full flex flex-col h-full relative overflow-hidden bg-transparent z-10">
     <header class="h-14 px-4 sm:px-6 flex items-center justify-between shrink-0 z-10">
       <div id="header-sidebar-trigger-group" class="flex items-center gap-2.5 md:hidden">
         <button type="button" id="btn-header-sidebar" title="Expand Sidebar" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors">
@@ -226,9 +226,9 @@
       </div>
     </header>
 
-    <main id="chat-container" class="flex-1 overflow-y-auto custom-scroll px-4 sm:px-8 py-2 flex flex-col justify-between">
+    <main id="chat-container" class="flex-1 min-w-0 w-full overflow-y-auto overflow-x-hidden custom-scroll px-3 sm:px-8 py-2 flex flex-col justify-between">
       <!-- HERO VIEW -->
-      <div id="gemini-greeting" class="max-w-2xl w-full mx-auto my-auto py-8 space-y-6 select-text text-center">
+      <div id="gemini-greeting" class="max-w-2xl w-full min-w-0 mx-auto my-auto py-6 sm:py-8 space-y-5 sm:space-y-6 select-text text-center">
         <div class="space-y-3">
           <div class="gemini-diamond-star mx-auto"></div>
           <h1 class="text-3xl sm:text-4xl font-normal tracking-tight text-white">
@@ -236,7 +236,7 @@
           </h1>
         </div>
 
-        <div class="max-w-xl mx-auto">
+        <div class="max-w-xl w-full min-w-0 mx-auto">
           <div id="hero-image-preview" class="hidden mb-2 px-2 flex items-center gap-2.5">
             <div class="relative inline-block">
               <img id="hero-preview-img" src="" alt="Preview" class="w-14 h-14 object-cover rounded-xl border border-white/20 shadow-md" />
@@ -248,15 +248,15 @@
             </div>
           </div>
 
-          <div class="bg-[#1e1f20] hover:bg-[#232427] border border-white/10 focus-within:border-white/25 rounded-3xl p-2 sm:p-2.5 transition-all shadow-xl">
-            <form id="hero-form" class="flex items-center gap-2">
+          <div class="bg-[#1e1f20] hover:bg-[#232427] border border-white/10 focus-within:border-white/25 rounded-3xl p-1.5 sm:p-2.5 transition-all shadow-xl">
+            <form id="hero-form" class="flex items-center gap-1 sm:gap-2">
               <input type="file" id="hero-file-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" />
-              <button type="button" id="btn-hero-attach" title="Attach Image for AI Vision Analysis" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <button type="button" id="btn-hero-attach" title="Attach Image for AI Vision Analysis" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
               </button>
 
-              <button type="button" id="btn-hero-img-mode" title="Generate 4K Art" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-lg text-[#c4c7c5] hover:text-white transition-colors shrink-0">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <button type="button" id="btn-hero-img-mode" title="Generate 4K Art" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-lg text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               </button>
 
               <input
@@ -265,11 +265,11 @@
                 placeholder="Ask KIVO or type 'Generate an image of...'"
                 maxlength="8000"
                 autocomplete="off"
-                class="flex-1 bg-transparent px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
+                class="flex-1 min-w-0 bg-transparent px-1.5 sm:px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
               />
 
-              <div class="relative">
-                <button type="button" id="hero-model-pill" class="flex items-center gap-1 px-2.5 py-1 rounded-full hover:bg-white/10 text-xs text-[#c4c7c5] hover:text-white font-medium transition-colors">
+              <div class="relative shrink-0">
+                <button type="button" id="hero-model-pill" class="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full hover:bg-white/10 text-xs text-[#c4c7c5] hover:text-white font-medium transition-colors">
                   <span id="active-model-name">Pro</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
@@ -286,12 +286,12 @@
                 </div>
               </div>
 
-              <button type="button" id="hero-mic-btn" title="Voice Dictation" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-all shrink-0 relative overflow-hidden">
+              <button type="button" id="hero-mic-btn" title="Voice Dictation" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-all shrink-0 relative overflow-hidden">
                 <svg id="hero-mic-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                 <div id="hero-voice-logo" class="hidden kivo-logo-gem kivo-voice-spinning-logo !w-[22px] !h-[22px]"></div>
               </button>
 
-              <button type="submit" title="Send" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all shrink-0">
+              <button type="submit" title="Send" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all shrink-0">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
               </button>
             </form>
@@ -314,8 +314,8 @@
           </button>
         </div>
 
-        <!-- Interactive Prompt Suggestion Chips Carousel -->
-        <div class="flex items-center gap-2 overflow-x-auto custom-scroll pb-2 max-w-xl mx-auto pt-2 px-1">
+        <!-- Interactive Prompt Suggestion Chips -->
+        <div class="flex items-center justify-center flex-wrap gap-2 pb-2 max-w-xl w-full mx-auto pt-2 px-1">
           <button type="button" data-fill-prompt="Who is your creator and boss?" class="prompt-chip whitespace-nowrap px-3.5 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold hover:border-amber-400 hover:scale-105 transition-all shadow-sm flex items-center gap-1.5 shrink-0">
             <span>✦</span> Who is Kunal Tandon?
           </button>
@@ -351,20 +351,20 @@
         </div>
       </div>
 
-      <div class="glass-prompt-card p-2 sm:p-2.5 focus-within:border-white/25 transition-all shadow-xl">
-        <form id="dock-form" class="flex items-center gap-2">
-          <button type="button" id="btn-dock-newchat" title="Start New Conversation" class="px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white font-medium flex items-center gap-1 transition-all shrink-0 border border-white/10 shadow-sm group">
+      <div class="glass-prompt-card p-1.5 sm:p-2.5 focus-within:border-white/25 transition-all shadow-xl">
+        <form id="dock-form" class="flex items-center gap-1 sm:gap-2">
+          <button type="button" id="btn-dock-newchat" title="Start New Conversation" class="px-2 sm:px-2.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white font-medium flex items-center gap-1 transition-all shrink-0 border border-white/10 shadow-sm group">
             <svg class="group-hover:rotate-90 transition-transform text-cyan-400" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             <span class="hidden sm:inline">New</span>
           </button>
 
           <input type="file" id="dock-file-input" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden" />
-          <button type="button" id="btn-dock-attach" title="Attach Image for AI Vision Analysis" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+          <button type="button" id="btn-dock-attach" title="Attach Image for AI Vision Analysis" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
           </button>
 
-          <button type="button" id="btn-dock-img-mode" title="Generate 4K Art" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <button type="button" id="btn-dock-img-mode" title="Generate 4K Art" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-colors shrink-0">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
 
           <input
@@ -373,15 +373,15 @@
             placeholder="Ask KIVO or type 'Generate an image of...'"
             maxlength="8000"
             autocomplete="off"
-            class="flex-1 bg-transparent px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
+            class="flex-1 min-w-0 bg-transparent px-1.5 sm:px-2 text-sm text-[#e3e3e3] placeholder-[#8e918f] focus:outline-none"
           />
 
-          <button type="button" id="dock-mic-btn" title="Voice Dictation" class="w-9 h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-all shrink-0 relative overflow-hidden">
+          <button type="button" id="dock-mic-btn" title="Voice Dictation" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-white/10 flex items-center justify-center text-[#c4c7c5] hover:text-white transition-all shrink-0 relative overflow-hidden">
             <svg id="dock-mic-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
             <div id="dock-voice-logo" class="hidden kivo-logo-gem kivo-voice-spinning-logo !w-[22px] !h-[22px]"></div>
           </button>
 
-          <button type="submit" title="Send" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all shrink-0">
+          <button type="submit" title="Send" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white text-white hover:text-black flex items-center justify-center transition-all shrink-0">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           </button>
         </form>

@@ -4,14 +4,11 @@ const { requireAuth } = require('./_lib/auth');
 const { validateChatInput } = require('./_lib/validate');
 const { incrementUserStat } = require('./_lib/store');
 
-const GEMINI_MODELS = [
-  'gemini-3.5-flash-lite',
-  'gemini-3.1-flash-lite',
-  'gemini-3-flash-preview',
-  'gemini-flash-lite-latest',
-  'gemini-3.5-flash',
-  'gemini-flash-latest'
-];
+const MODELS_BY_TIER = {
+  fast: ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-flash-lite-latest'],
+  pro: ['gemini-3.5-flash-lite', 'gemini-2.5-flash', 'gemini-3-flash-preview', 'gemini-flash-latest'],
+  ultimate: ['gemini-3-flash-preview', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-2.5-pro']
+};
 
 function buildSystemPrompt({ userName, hinglish, coding, persona, customInstructions }) {
   let systemPrompt = `You are KIVO, an ultra-intelligent, helpful, and friendly personal AI assistant. Reply clearly, concisely, and helpfully in English or Hindi as requested.
@@ -71,6 +68,16 @@ function buildGeminiContents(history, prompt, attachedImage) {
   return contents;
 }
 
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function callFallbackEngine(prompt, systemPrompt, history) {
   try {
     let transcript = `${systemPrompt}\n\n`;
@@ -83,19 +90,17 @@ async function callFallbackEngine(prompt, systemPrompt, history) {
     }
     transcript += `User: ${prompt}\nKIVO:`;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 9000);
-    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(transcript)}?model=openai`, {
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-
+    const res = await fetchWithTimeout(
+      `https://text.pollinations.ai/${encodeURIComponent(transcript)}?model=openai`,
+      {},
+      6500
+    );
     if (res.ok) {
       const txt = (await res.text()).trim();
       if (txt.length > 4) return txt;
     }
   } catch {
-    // Fallback failure handled cleanly by caller
+    // Fallback handled cleanly
   }
   return null;
 }
@@ -126,7 +131,7 @@ module.exports = async function handler(req, res) {
     return sendError(res, 400, parsed.error);
   }
 
-  const { prompt, hinglish, coding, persona, customInstructions, history, attachedImage } = parsed.value;
+  const { prompt, hinglish, coding, persona, tier, customInstructions, history, attachedImage } = parsed.value;
   const systemPrompt = buildSystemPrompt({
     userName: session.name,
     hinglish,
@@ -135,51 +140,62 @@ module.exports = async function handler(req, res) {
     customInstructions
   });
 
-  // Key comes strictly from server env OR user's own optional key header (never hardcoded in repo)
   const headerKey = typeof req.headers['x-user-api-key'] === 'string' ? req.headers['x-user-api-key'].trim() : '';
   const safeUserKey = headerKey && headerKey.length >= 20 && headerKey.length <= 200 ? headerKey : '';
   const apiKey = safeUserKey || (process.env.GEMINI_API_KEY || '').trim();
 
   if (apiKey) {
+    const models = MODELS_BY_TIER[tier] || MODELS_BY_TIER.pro;
     const contents = buildGeminiContents(history, prompt, attachedImage);
     const payload = {
       system_instruction: { parts: [{ text: systemPrompt }] },
       contents
     };
+    const deadline = Date.now() + 9500;
 
-    for (const model of GEMINI_MODELS) {
+    for (const model of models) {
+      const remaining = deadline - Date.now();
+      if (remaining < 1500) break;
+
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 7000);
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`;
-
-        let upstream = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey
-          },
-          body: JSON.stringify(payload),
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (upstream.status === 400) {
-          const fallbackContents = JSON.parse(JSON.stringify(contents));
-          if (fallbackContents[0]?.parts?.[0]) {
-            fallbackContents[0].parts[0].text = `${systemPrompt}\n\n${fallbackContents[0].parts[0].text}`;
-          }
-          upstream = await fetch(endpoint, {
+        let upstream = await fetchWithTimeout(
+          endpoint,
+          {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify({ contents: fallbackContents })
-          });
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+            body: JSON.stringify(payload)
+          },
+          Math.min(4500, remaining)
+        );
+
+        // If API key itself is invalid/unauthorized, stop wasting latency on remaining models
+        if (upstream.status === 401 || upstream.status === 403) {
+          break;
         }
 
-        if (upstream.status === 429 || upstream.status === 503) {
+        if (upstream.status === 400 && Date.now() + 1500 < deadline) {
+          const errText = await upstream.text().catch(() => '');
+          if (errText.toLowerCase().includes('system_instruction')) {
+            const fallbackContents = JSON.parse(JSON.stringify(contents));
+            if (fallbackContents[0]?.parts?.[0]) {
+              fallbackContents[0].parts[0].text = `${systemPrompt}\n\n${fallbackContents[0].parts[0].text}`;
+            }
+            upstream = await fetchWithTimeout(
+              endpoint,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+                body: JSON.stringify({ contents: fallbackContents })
+              },
+              4000
+            );
+          } else {
+            continue;
+          }
+        }
+
+        if (upstream.status === 429 || upstream.status === 503 || upstream.status === 404) {
           continue;
         }
 
@@ -192,7 +208,7 @@ module.exports = async function handler(req, res) {
           return res.status(200).json({ reply });
         }
       } catch {
-        // Try next model silently without exposing errors
+        // Try next model within budget
       }
     }
   }
@@ -206,6 +222,6 @@ module.exports = async function handler(req, res) {
   }
 
   return res.status(503).json({
-    error: 'AI engine is currently experiencing high demand. Please retry shortly or configure GEMINI_API_KEY.'
+    error: 'AI engine is currently experiencing high demand. Please retry shortly.'
   });
 };
