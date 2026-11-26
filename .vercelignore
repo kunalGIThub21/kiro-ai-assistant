@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+.env.*
+.env.example
+README.md
+package.json
+package-lock.json
+node_modules
+src
+scripts
+*.log
+*.md

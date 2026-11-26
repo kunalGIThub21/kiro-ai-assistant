@@ -1,0 +1,17 @@
+<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="48" height="48" rx="12" fill="#131314"/>
+  <defs>
+    <linearGradient id="tiMain" x1="10%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="tiSheen" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#c084fc"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <path d="M14 34C11 25 13 16 19 12.5C23 10.2 26 12 24 16.5C21.5 22 17 25 16 29C15.5 31 16 33 17 33.5C18 34 20 33 22 31.5L34 16C37 12 41 11.5 41 12C41 12.5 35 18 28 24.5C24 28 20 31.5 18 34C16.5 36 14.8 36.2 14 34Z" fill="url(#tiMain)"/>
+  <path d="M23 25C26 28 32 33 39 34.5C41 35 39 36.5 36 36.5C30 36.5 23 32 19 28L23 25Z" fill="url(#tiSheen)"/>
+</svg>
