@@ -254,6 +254,57 @@ body.light-theme #messages-list button:hover {
   background-color: rgba(15, 23, 42, 0.12) !important;
   color: #0f172a !important;
 }
+
+/* Native Colorful BorderBeam (Inspired by border-beam component) */
+@property --kivo-beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes kivoBorderBeamSpin {
+  0% { --kivo-beam-angle: 0deg; }
+  100% { --kivo-beam-angle: 360deg; }
+}
+
+.kivo-border-beam {
+  position: relative;
+}
+
+.kivo-border-beam::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--kivo-beam-angle),
+    transparent 0deg 255deg,
+    rgba(56, 189, 248, 0.9) 285deg,
+    rgba(168, 85, 247, 0.95) 312deg,
+    rgba(244, 63, 94, 0.9) 338deg,
+    rgba(251, 191, 36, 0.85) 352deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+  animation: kivoBorderBeamSpin 4.5s linear infinite;
+}
+
+.kivo-border-beam:focus-within::before {
+  animation-duration: 2.6s;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.45));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kivo-border-beam::before {
+    animation: none;
+  }
+}
 body.light-theme #messages-list h2,
 body.light-theme #messages-list h3 {
   color: #0f172a !important;
